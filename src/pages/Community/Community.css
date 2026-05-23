@@ -1,0 +1,41 @@
+.community__page__wrapper {
+  background: linear-gradient(114.3deg, rgb(19, 126, 57) 0.2%, rgb(8, 65, 91) 68.5%);  
+  padding: 50px;
+  min-height: 100vh;
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.community__page__header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.community__page__header > h2 {
+  cursor: pointer;
+}
+
+.community__page__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.community__page__content > p {
+  font-size: 22px;
+}
+
+.community__grid__container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; 
+  width: fit-content;
+  margin-top: 2rem;
+  margin: 0 auto; 
+}

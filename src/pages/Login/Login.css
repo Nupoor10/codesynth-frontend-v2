@@ -1,0 +1,116 @@
+.login__page__wrapper {
+  background-color: #b6ffda;
+  background: linear-gradient(108.9deg, rgb(163, 217, 221) 10.4%, rgb(174, 250, 182) 56.2%, rgb(238, 243, 220) 86.1%);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.login__container {
+  background-color: rgba(0, 0, 0, 0.4);
+  margin: 50px;
+  padding: 40px;
+  border-radius: 25px;
+}
+
+.login__container h1 {
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 40px;
+  margin-bottom: 40px;
+  color: white;
+}
+
+.login__form {
+  display: flex;
+    margin: auto;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    background-color: black;
+    padding: 30px 20px;
+    border-radius: 25px;
+    margin-top: 40px;
+}
+
+.login__form h3 {
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  margin-top: 30px;
+  margin-bottom: 0px;
+}
+
+.login__form a {
+  color: #b6ffda;
+  font-size: 22px;
+}
+
+.login__input {
+  color: white;
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  border-radius: 10px;
+  line-height: 22px;
+  background-color: transparent;
+  border-bottom: 3px solid #b6ffda;
+  transition: all 0.3s;
+  padding: 13px;
+  margin-bottom: 35px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: 0;
+}
+
+.login__input:focus {
+  border: 4px solid #5bfeac;
+}
+
+.login__btn {
+  font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+  width: 100%;
+  background: #b6ffda;
+  border-radius: 15px;
+  border: 0;
+  cursor: pointer;
+  color: white;
+  font-size: 24px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  transition: all 0.3s;
+  margin-top: -4px;
+  font-weight: 700;
+}
+
+.login__btn:hover {
+  background: #5bfeac;
+}
+
+@media screen and (min-width:768px) {
+  .login__form {
+    width: 500px;
+    height: 350px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .login__body {
+    margin: 0px 20px;
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .login__container {
+    margin: 20px;
+  }
+  .login__body {
+    padding: 20px;
+  }
+  .login__body > h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  .login__btn, .login__form h3 {
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,23 @@
+.home__card__wrapper {
+    background-color: #2A3439;
+    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.5);
+    border-radius: 25px;
+    margin: 30px;
+    padding: 20px;
+}
+
+.home__card__wrapper:hover {
+    transform: scale(1.05);
+}
+
+.home__card__wrapper > h1 {
+    font-size: 24px;
+    cursor: pointer;
+    margin-bottom: 4rem;
+}
+
+@media screen and (max-width: 768px) {
+    .home__card__wrapper > h1 {
+        margin-bottom: 1rem;
+    }
+}

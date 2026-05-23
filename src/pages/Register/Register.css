@@ -1,0 +1,117 @@
+.register__page__wrapper {
+    background-color: #a2fed0;
+    background: linear-gradient(108.9deg, rgb(163, 217, 221) 10.4%, rgb(174, 250, 182) 56.2%, rgb(238, 243, 220) 86.1%);
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .register__container {
+    background-color: rgba(0, 0, 0, 0.4);
+    margin: 50px;
+    padding: 40px;
+    border-radius: 25px;
+  }
+  
+  .register__container h1 {
+    text-align: center;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 40px;
+    margin-bottom: 40px;
+    color: white;
+  }
+  
+  .register__form {
+    display: flex;
+    margin: auto;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    background-color: black;
+    padding: 30px 20px;
+    border-radius: 25px;
+    margin-top: 40px;
+  }
+  
+  .register__form h3 {
+    font-size: 20px;
+    color: white;
+    cursor: pointer;
+    margin-top: 30px;
+    margin-bottom: 0px;
+  }
+  
+  .register__form a {
+    color: #a2fed0;
+    font-size: 22px;
+  }
+  
+  .register__input {
+    color: white;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    border-radius: 10px;
+    line-height: 22px;
+    background-color: transparent;
+    border-bottom: 2px solid #a2fed0;
+    transition: all 0.3s;
+    padding: 13px;
+    margin-bottom: 35px;
+    width: 100%;
+    box-sizing: border-box;
+    outline: 0;
+  }
+  
+  .register__input:focus {
+    border: 4px solid #a2fed0;
+  }
+  
+  .register__btn {
+    font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+    width: 100%;
+    background: #a2fed0;
+    border-radius: 15px;
+    border: 0;
+    cursor: pointer;
+    color: white;
+    font-size: 24px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    transition: all 0.3s;
+    margin-top: -4px;
+    font-weight: 700;
+  }
+  
+  .register__btn:hover {
+    background: #5bfeac;
+  }
+  
+  @media screen and (min-width:768px) {
+    .register__form {
+      width: 500px;
+      height: 350px;
+    }
+  }
+  @media screen and (max-width: 768px) {
+    .register__body {
+      margin: 0px 20px;
+    }
+  }
+  
+  @media screen and (max-width: 520px) {
+    .register__container {
+      margin: 20px;
+    }
+    .register__body {
+      padding: 20px;
+    }
+    .register__body > h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .register__btn, .register__form h3 {
+      font-size: 16px;
+    }
+  }
+  

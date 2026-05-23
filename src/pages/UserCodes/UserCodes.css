@@ -1,0 +1,39 @@
+.usercodes__page__wrapper {
+  background: linear-gradient(114.3deg, rgb(19, 126, 57) 0.2%, rgb(8, 65, 91) 68.5%);  
+  padding: 50px;
+  min-height: 100vh;
+  color: white;
+  text-align: center;
+}
+
+.usercodes__page__header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.usercodes__page__header > h2 {
+  cursor: pointer;
+}
+
+.usercodes__page__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.usercodes__page__content > p {
+  font-size: 22px;
+}
+
+.usercodes__page__content > button {
+  font-size: 16px;
+  padding: 10px;
+}
+
+.usercodes__grid__container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 2rem;
+}

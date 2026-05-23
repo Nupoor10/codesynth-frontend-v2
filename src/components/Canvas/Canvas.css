@@ -1,0 +1,33 @@
+.canvas__container {
+    background-color: mintcream;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.canvas__controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+    padding-top: 1rem;
+}
+
+.prompt__value {
+    display: inline;
+    width: 90%;
+    margin-bottom: 20px;
+}
+
+.image__container {
+    background-color: mintcream;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-bottom: 2rem;
+}

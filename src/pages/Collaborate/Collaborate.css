@@ -1,0 +1,57 @@
+.userrooms__page__wrapper {
+    background: linear-gradient(114.3deg, rgb(19, 126, 57) 0.2%, rgb(8, 65, 91) 68.5%);  
+    padding: 50px;
+    min-height: 100vh;
+    color: white;
+    text-align: center;
+  }
+  
+  .userrooms__page__header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .userrooms__page__header > h2 {
+    cursor: pointer;
+  }
+  
+  .userrooms__page__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .userrooms__page__content > p {
+    font-size: 22px;
+  }
+  
+  .userrooms__page__content > button {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .join__room__container {
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .join__room__container input {
+    width: 250px;
+    outline: none;
+  }
+
+  .join__room__container input:focus {
+    width: 250px;
+    outline: 2px solid rgb(252, 0, 198);
+  }
+  
+  .userrooms__grid__container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 2rem;
+  }
+  

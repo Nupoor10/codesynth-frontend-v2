@@ -1,0 +1,34 @@
+.single__room__container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2A3439;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0px;
+    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.5);
+    width: 94%;
+}
+
+.single__room__container:hover {
+    transform: scale(1.02);
+}
+
+.single__room__container > div {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.single__room__container button {
+    margin: 5px;
+}
+
+@media screen and (max-width: 520px) {
+    .single__room__container {
+        flex-direction: column;
+    }
+}

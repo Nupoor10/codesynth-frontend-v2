@@ -1,0 +1,13 @@
+.participant__list__container {
+    color: black;
+}
+
+.participant__list__container > p {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    margin: 10px;
+    border-radius: 15px;
+    background-color: rgb(130, 251, 191);
+}
