@@ -34,16 +34,11 @@ const CodeContainer = ({title, id, time}) => {
         navigate(`/code/${id}`);
     }
 
-    const goToNotes = () => {
-        navigate(`/notes/${id}`)
-    }
-
   return (
     <div className='single__code__container'>
         <div className='code__details__div'>
             <p>{title}</p>
             <p>🗓️{time?.slice(0, 10)}</p>
-            <p className='notes__navigate__btn' onClick={goToNotes}>Go To Notes ➡️</p>
         </div>
         <div>
             <p className='code__container__btn' onClick={deleteCode}>🗑️</p>

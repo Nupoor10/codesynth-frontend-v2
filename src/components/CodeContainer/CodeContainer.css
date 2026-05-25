@@ -15,10 +15,6 @@
     transform: scale(1.02);
 }
 
-.notes__navigate__btn {
-    cursor: pointer;
-}
-
 .code__container__btn {
     cursor: pointer;
     font-size: 32px;
