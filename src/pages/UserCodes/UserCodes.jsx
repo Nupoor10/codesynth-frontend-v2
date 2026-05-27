@@ -53,12 +53,10 @@ const UserCodes = () => {
           }
         };
         const body = {
-          html: '<h1>Welcome to CodeSynth</h1>',
-          css: 'body {\n\tbackground: linear-gradient(109.6deg, rgb(20, 30, 48) 11.2%, rgb(36, 59, 85) 91.1%);\n\tcolor : #ffffff \n}',
-          js: '',
+          // Create a minimal code project. Backend will add a blank index.html entry file.
           isRoom: false,
           title: 'Demo Container'
-        }
+        };
         const response = await axios.post(`${apiURL}/codes/create`, body, config);
         if (response && response.status === 201 && response.data.codeDoc) {
           const id = response.data.codeDoc._id

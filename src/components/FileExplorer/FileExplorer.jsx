@@ -73,7 +73,8 @@ const FileExplorer = ({
     return index !== -1 ? name.slice(0, index) : name;
   };
 
-  const protectedFileNames = ['index.html', 'styles.css', 'script.js'];
+  // Only protect the entry file from deletion/rename; allow styles/script files to be managed
+  const protectedFileNames = ['index.html'];
 
   const handleRenameFile = (fileId, extension) => {
     const newName = renamingFileName.trim();

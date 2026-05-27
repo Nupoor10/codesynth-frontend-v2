@@ -8,108 +8,277 @@ import { WebsocketProvider } from 'y-websocket';
 import CollabNav from "../../components/PlaygroundNav/CollabNav";
 import FileExplorer from '../../components/FileExplorer/FileExplorer';
 import CodeEditor from '../../components/CodeEditor/CodeEditor';
+import Whiteboard from '../../components/Whiteboard/Whiteboard';
+import DraggableResizableModal from '../../components/Modal/DraggableResizableModal';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import ACTIONS from '../../constants/Actions';
 import { initSocket } from '../../socket';
 import "./Playground.css"
 import previewBuilder from '../../utils/previewBuilder';
+
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
 const CollabPlayground = () => {
-
-  const [ files, setFiles] = useState([]);
-  const [ activeFileId, setActiveFileId] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [activeFileId, setActiveFileId] = useState(null);
   const [title, setTitle] = useState('');
   const [isRoom, setIsRoom] = useState(false);
+  const [whiteboardData, setWhiteboardData] = useState('');
+  const [isBrainstormOpen, setIsBrainstormOpen] = useState(false);
   const [owner, setOwner] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [ collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [activeClients, setActiveClients] = useState([]);
+  const [previewSrcDoc, setPreviewSrcDoc] = useState('');
+  const [canonicalRoomId, setCanonicalRoomId] = useState('');
+  
   const { user } = useAuthContext();
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const whiteboardSaveRef = useRef(null);
   const socketRef = useRef(null);
   const ydocRef = useRef(null);
   const yProviderRef = useRef(null);
   const yFileContentsRef = useRef(null);
   const yTextObserversRef = useRef(new Map());
   const saveTimeoutsRef = useRef(new Map());
+  
   const filesRef = useRef([]);
-  const navigate = useNavigate();
+  const activeFileIdRef = useRef(null);
+  const previewBlobUrlsRef = useRef([]);
+  const previewTimeoutRef = useRef(null);
+
+  const openBrainstorm = () => setIsBrainstormOpen(true);
+  const closeBrainstorm = () => setIsBrainstormOpen(false);
+
+  const handleSocketErrors = (error) => {
+    console.error('Socket error:', error);
+    toast.error('Real-time connection failed. Please refresh or try again.');
+  };
+
+  // 2. Unified WebSocket Spinning Layer
+  const initializeRealTimeChannels = async (loadedFiles, canonicalRoomId) => {
+    if (ydocRef.current || socketRef.current) return; // Prevent duplicate connections
+
+    console.log(`🎯 Connecting both engines to Channel Room: ${canonicalRoomId}`);
+
+    // --- A. INITIALIZE YJS ---
+    const doc = new Y.Doc();
+    ydocRef.current = doc;
+    yProviderRef.current = new WebsocketProvider(getYjsEndpoint(), canonicalRoomId, doc);
+    yFileContentsRef.current = doc.getMap('fileContents');
+    console.debug('[yjs] initialized yFileContents map', { room: canonicalRoomId, keys: Array.from(yFileContentsRef.current.keys()) });
+
+    loadedFiles.forEach((file) => {
+      if (!yFileContentsRef.current.has(file.id)) {
+        const yText = new Y.Text();
+        yText.insert(0, file.content || '');
+        yFileContentsRef.current.set(file.id, yText);
+      }
+      const yText = yFileContentsRef.current.get(file.id);
+      console.debug('[yjs] attaching yText observer', { fileId: file.id });
+      attachYTextObserver(file.id, yText);
+    });
+
+    yProviderRef.current.on('sync', (isSynced) => {
+      console.debug('[yjs] provider sync', { room: canonicalRoomId, isSynced, time: Date.now() });
+      if (isSynced) rebuildPreview();
+    });
+
+    // --- B. INITIALIZE SOCKET.IO ---
+    socketRef.current = await initSocket();
+    socketRef.current.on(ACTIONS.CONNECT_ERROR, handleSocketErrors);
+    socketRef.current.on(ACTIONS.CONNECT_FAILED, handleSocketErrors);
+    
+    socketRef.current.on(ACTIONS.NEW_JOIN, ({ username, clients }) => {
+      console.debug('[socket] NEW_JOIN received', { username, clients });
+      if (user?.name !== username) toast.success(`${username} joined the room`);
+      setActiveClients(Array.from(new Set(clients.map(c => String(c)))));
+    });
+
+    socketRef.current.on(ACTIONS.DISCONNECTED, ({ username, clients }) => {
+      console.debug('[socket] DISCONNECTED received', { username, clients });
+      if (user?.name !== username) toast.error(`${username} left the room`);
+      if (clients) {
+        setActiveClients(Array.from(new Set(clients.map(c => String(c)))));
+      }
+    });
+
+    socketRef.current.on(ACTIONS.FILE_CREATE, ({ file }) => {
+      console.debug('[socket] FILE_CREATE received', { fileId: file?.id });
+      setFiles(prev => {
+        if (prev.some(f => f.id === file.id)) return prev;
+        
+        // Rebind Yjs reference maps live inside the incoming socket context loop
+        if (yFileContentsRef.current && !yFileContentsRef.current.has(file.id)) {
+          const yText = new Y.Text();
+          yText.insert(0, file.content || '');
+          yFileContentsRef.current.set(file.id, yText);
+          console.debug('[yjs] FILE_CREATE - attaching yText observer for new file', { fileId: file.id });
+          attachYTextObserver(file.id, yText);
+        }
+        return [...prev, file];
+      });
+      setTimeout(() => schedulePreviewRebuild(), 100);
+    });
+
+    socketRef.current.emit(ACTIONS.JOIN_ROOM, { 
+      roomId: canonicalRoomId, 
+      username: user?.name,
+      dbUserId: user?._id || user?.id // Ensures backend can match and $pull from MongoDB collections
+    });
+    console.debug('[socket] emitted JOIN_ROOM', { roomId: canonicalRoomId, username: user?.name });
+
+    socketRef.current.on(ACTIONS.FILE_DELETE, ({ fileId }) => {
+      console.debug('[socket] FILE_DELETE received', { fileId });
+      setFiles(prev => {
+        const filtered = prev.filter(f => f.id !== fileId);
+        if (activeFileIdRef.current === fileId) {
+          setActiveFileId(filtered[0]?.id || null);
+        }
+        return filtered;
+      });
+      
+      if (yFileContentsRef.current) {
+        const yText = yFileContentsRef.current.get(fileId);
+        const cb = yTextObserversRef.current.get(fileId);
+        if (yText && cb) {
+          try { yText.unobserve(cb); } catch(e){}
+          yTextObserversRef.current.delete(fileId);
+        }
+        yFileContentsRef.current.delete(fileId);
+      }
+      setTimeout(() => schedulePreviewRebuild(), 100);
+    });
+
+    socketRef.current.on(ACTIONS.FILE_RENAME, ({ fileId, name }) => {
+      console.debug('[socket] FILE_RENAME received', { fileId, name });
+      setFiles(prev => prev.map(f => f.id === fileId ? { ...f, name } : f));
+    });
+  };
+
+  const cleanupRealTimeChannels = () => {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current.removeAllListeners();
+      socketRef.current = null;
+    }
+    if (yProviderRef.current) {
+      try { yProviderRef.current.disconnect(); yProviderRef.current.destroy(); } catch (e) {}
+      yProviderRef.current = null;
+    }
+    if (ydocRef.current) {
+      try { ydocRef.current.destroy(); } catch (e) {}
+      ydocRef.current = null;
+    }
+    console.log("🧹 Real-time tracking channels completely wiped");
+  };
+
+  // Sync references to prevent state closure traps
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
 
   useEffect(() => {
-    const fetchCode = async() => {
-      if(id && user) {
-        try {
-          const config = {
-            headers: {
-              Authorization: user?.accessToken
-            }
-          };
-          const response = await axios.get(`${apiURL}/codes/get/${id}`, config);
-          if(response && response.status === 200) {
-            const codeDoc = response?.data?.codeDoc;
-            setFiles(codeDoc?.files || []);
-            if (codeDoc?.files?.length > 0) {
-              setActiveFileId(codeDoc.files[0].id);
-            }
-            setTitle(codeDoc?.title);
-            setIsRoom(codeDoc?.isRoom);
-            setOwner(codeDoc?.owner.username)
-            if(codeDoc?.owner?.username === user.name) {
-              setIsAdmin(true);
-            }
+    activeFileIdRef.current = activeFileId;
+  }, [activeFileId]);
+
+ // 1. Core Unified Workspace Hydration Engine Hook
+  useEffect(() => {
+    const fetchCode = async () => {
+      if (!id || !user) return;
+      try {
+        const config = { headers: { Authorization: user?.accessToken } };
+        
+        // Step A: Pull the room document configuration fields from your controller endpoint
+        const roomResponse = await axios.get(`${apiURL}/rooms/get/${id}`, config);
+        let extractedRoomStringId = id; // Fallback key
+        
+        if (roomResponse && roomResponse.status === 200 && roomResponse.data.userRoom) {
+          // Extract your explicit custom alphanumeric room identity key string
+          extractedRoomStringId = roomResponse.data.userRoom.roomId;
+        }
+
+        // Step B: Pull code files payload structures
+        const response = await axios.get(`${apiURL}/codes/get/${id}`, config);
+        
+        if (response && response.status === 200) {
+          const codeDoc = response.data.codeDoc || response.data.code;
+          if (!codeDoc) throw new Error("Workspace files missing");
+
+          const loadedFiles = codeDoc.files || [];
+          setFiles(loadedFiles);
+          
+          if (loadedFiles.length > 0) {
+            setActiveFileId(loadedFiles[0].id);
           }
+          
+          setTitle(codeDoc.title || 'Untitled');
+          setIsRoom(Boolean(codeDoc.isRoom));
+          setWhiteboardData(codeDoc.whiteboardData || '');
+          setOwner(codeDoc.owner?.username || 'Unknown');
+          
+          if (codeDoc.owner?.username === user.name) {
+            setIsAdmin(true);
+          }
+
+          setCanonicalRoomId(extractedRoomStringId);
+          // Use the explicit, unified custom roomId string across both clients
+          initializeRealTimeChannels(loadedFiles, extractedRoomStringId);
         }
-         catch(error) {
-          console.log(error);
-          toast.error(error?.message);
-        }
+      } catch (error) {
+        console.error("Critical alignment failure:", error);
+        toast.error('Failed to initialize collaborative environment keys');
       }
-    }
+    };
 
     fetchCode();
 
-  }, [])
+    return () => {
+      cleanupRealTimeChannels();
+    };
+  }, [id, user]);
+
 
   const getYjsEndpoint = () => {
-    const baseUrl = import.meta.env.VITE_YJS_URL || apiURL;
-    const wsUrl = baseUrl.replace(/^http/, 'ws').replace(/\/$/, '');
-    return `${wsUrl}/yjs`;
+    if (import.meta.env.VITE_YJS_URL) {
+      return import.meta.env.VITE_YJS_URL.replace(/\/$/, '');
+    }
+    return 'ws://localhost:4040/yjs';
   };
-
+  
   const persistFileContent = async (fileId, content) => {
     if (!user || !fileId) return;
-
     try {
-      const config = {
-        headers: {
-          Authorization: user?.accessToken
-        }
-      };
+      const config = { headers: { Authorization: user?.accessToken } };
       await axios.put(`${apiURL}/codes/${id}/files/${fileId}`, { content }, config);
     } catch (error) {
-      console.error('Failed to persist file content via REST:', error?.message || error);
+      console.error('Failed backend background saving persistence:', error);
     }
   };
 
   const scheduleSave = (fileId, content) => {
     if (!fileId) return;
     const existingTimeout = saveTimeoutsRef.current.get(fileId);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-    }
+    if (existingTimeout) clearTimeout(existingTimeout);
 
     const timeout = setTimeout(() => {
       persistFileContent(fileId, content);
       saveTimeoutsRef.current.delete(fileId);
-    }, 1000);
+    }, 1500);
 
     saveTimeoutsRef.current.set(fileId, timeout);
   };
 
-  const rebuildPreview = (sourceFiles) => {
-    const source = sourceFiles ?? filesRef.current;
+  const rebuildPreview = () => {
+    // ALWAYS pull directly from filesRef instead of stale enclosed variables
+    const source = filesRef.current;
+    if (!source || source.length === 0) return;
+
+    console.debug('[preview] rebuildPreview start', { time: Date.now(), files: source.map(f => f.id) });
+
     const contentFiles = source.map((f) => {
       const yText = yFileContentsRef.current?.get(f.id);
       return { ...f, content: yText ? yText.toString() : f.content };
@@ -119,18 +288,36 @@ const CollabPlayground = () => {
     previewBuilder.revokeBlobUrls(previewBlobUrlsRef.current || []);
     previewBlobUrlsRef.current = blobUrls || [];
     setPreviewSrcDoc(srcDoc);
+    console.debug('[preview] rebuildPreview done', { time: Date.now(), blobCount: (blobUrls || []).length });
+  };
+
+  const schedulePreviewRebuild = () => {
+    if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+    previewTimeoutRef.current = window.setTimeout(() => {
+      rebuildPreview();
+    }, 400);
   };
 
   const attachYTextObserver = (fileId, yText) => {
-    if (!yText || yTextObserversRef.current.has(fileId)) return;
+    if (!yText || yTextObserversRef.current.has(fileId)) {
+      console.debug('[ytext] attach skipped', { fileId, hasYText: !!yText, alreadyObserved: yTextObserversRef.current.has(fileId) });
+      return;
+    }
     const cb = () => {
       const content = yText.toString();
+      console.debug('[ytext] change', { fileId, time: Date.now(), len: content.length });
+
+      // Keep local files state in sync so UI and preview rebuilds read fresh content
+      setFiles(prev => prev.map(f => f.id === fileId ? { ...f, content } : f));
       scheduleSave(fileId, content);
-      // update preview only, do NOT call setFiles to avoid edit loops
-      rebuildPreview();
+
+      // Always schedule preview rebuild on yText changes (handles remote edits via MonacoBinding)
+      console.debug('[preview] scheduling rebuild on ytext change', { fileId });
+      schedulePreviewRebuild();
     };
     yText.observe(cb);
     yTextObserversRef.current.set(fileId, cb);
+    console.debug('[ytext] observer attached', { fileId });
   };
 
   const initializeYjs = (loadedFiles, roomId) => {
@@ -139,200 +326,49 @@ const CollabPlayground = () => {
     const doc = new Y.Doc();
     ydocRef.current = doc;
     yProviderRef.current = new WebsocketProvider(getYjsEndpoint(), roomId, doc);
-    // attach local user presence to Yjs awareness so bindings (e.g. y-monaco) can show cursors
-    try {
-      if (yProviderRef.current && yProviderRef.current.awareness) {
-        yProviderRef.current.awareness.setLocalStateField('user', {
-          name: user?.name,
-          color: user?.color || '#3b82f6'
-        });
-      }
-    } catch (err) {
-      console.warn('Failed to set Yjs awareness local state', err);
-    }
+    
     yFileContentsRef.current = doc.getMap('fileContents');
 
-    // Ensure a Y.Text exists for every loaded file and attach lightweight observers
     loadedFiles.forEach((file) => {
       if (!yFileContentsRef.current.has(file.id)) {
         const yText = new Y.Text();
         yText.insert(0, file.content || '');
         yFileContentsRef.current.set(file.id, yText);
       }
-      // attach observer for persistence + preview rebuild (no setFiles)
       const yText = yFileContentsRef.current.get(file.id);
       attachYTextObserver(file.id, yText);
     });
 
-    // Observe the map itself for structural changes (keys added/removed).
-    // Key-level changes correspond to file create/delete; do NOT react to Y.Text inner updates here.
-    // Ensure a Y.Text exists for every loaded file and attach lightweight observers.
-    // Structural file changes are handled by Socket.io event listeners.
-
-    yProviderRef.current.on('status', (event) => {
-      console.log('Yjs provider status:', event.status);
-    });
-
     yProviderRef.current.on('sync', (isSynced) => {
-      console.log('Yjs provider synced:', isSynced);
+      if (isSynced) rebuildPreview();
     });
   };
 
+  // Clean tear-downs should only happen when a user completely leaves the room route
   useEffect(() => {
-    if (location?.state?.roomId && user && files.length > 0 && !ydocRef.current) {
-      initializeYjs(files, location.state.roomId);
-    }
-  }, [location?.state?.roomId, user, files]);
-
-  useEffect(() =>{
-    const socketConnection = async() => {
-      if(location?.state?.roomId) {
-        const roomId = location?.state?.roomId;
-        socketRef.current = await initSocket();
-        
-        socketRef.current.on(ACTIONS.CONNECT_ERROR, (err) => handleErrors(err));
-        socketRef.current.on(ACTIONS.CONNECT_FAILED, (err) => handleErrors(err));
-
-        socketRef.current.emit(ACTIONS.JOIN_ROOM, { roomId, username: user?.name});
-
-        socketRef.current.on(ACTIONS.NEW_JOIN, ({username, clients}) => {
-          if(user?.name !== username) {
-            toast.success(`${username} joined the room`);
-          }
-          setActiveClients(clients)
-        })
-
-        socketRef.current.on(ACTIONS.DISCONNECTED, ({username}) => {
-          if(user?.name !== username) {
-            toast.success(`${username} left the room`);
-          }
-          setActiveClients((prev) => {
-            return prev.filter((user) => user!== username.toString())
-          })
-        })
-
-        // File operation handlers
-        socketRef.current.on(ACTIONS.FILE_CREATE, ({ file }) => {
-          setFiles(prev => [...prev, file]);
-          
-          if (yFileContentsRef.current) {
-            // 1. Initialize the Y.Text entry ONLY if it doesn't exist yet
-            if (!yFileContentsRef.current.has(file.id)) {
-              const yText = new Y.Text();
-              yText.insert(0, file.content || '');
-              yFileContentsRef.current.set(file.id, yText);
-            }
-            
-            // 2. ALWAYS extract the yText and attach the observer
-            const yText = yFileContentsRef.current.get(file.id);
-            attachYTextObserver(file.id, yText);
-          }
-        });
-
-        socketRef.current.on(ACTIONS.FILE_DELETE, ({fileId}) => {
-          setFiles(prev => prev.filter(f => f.id !== fileId));
-          if (activeFileId === fileId) {
-            setActiveFileId(null);
-          }
-          if (yFileContentsRef.current) {
-            const yText = yFileContentsRef.current.get(fileId);
-            const cb = yTextObserversRef.current.get(fileId);
-            if (yText && cb) {
-              yText.unobserve(cb);
-              yTextObserversRef.current.delete(fileId);
-            }
-            yFileContentsRef.current.delete(fileId);
-          }
-        });
-
-        socketRef.current.on(ACTIONS.FILE_RENAME, ({fileId, name}) => {
-          setFiles(prev => prev.map(f => f.id === fileId ? {...f, name} : f));
-        });
-
-        socketRef.current.on(ACTIONS.FILE_REORDER, ({fileOrder}) => {
-          const fileMap = new Map(files.map(f => [f.id, f]));
-          const reorderedFiles = fileOrder.map((id, index) => {
-            const file = fileMap.get(id);
-            return {...file, order: index};
-          });
-          setFiles(reorderedFiles);
-        });
-      }
-    }
-    
-    socketConnection();
-
     return () => {
-      handleDisconnect();
-      // clear pending persistence timeouts to avoid memory leaks
-      if (saveTimeoutsRef.current) {
-        saveTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
-        saveTimeoutsRef.current.clear();
-      }
-
-      // detach all Y.Text observers
-      if (yTextObserversRef.current && yFileContentsRef.current) {
-        yTextObserversRef.current.forEach((cb, fileId) => {
-          const yText = yFileContentsRef.current.get(fileId);
-          if (yText && cb) {
-            try { yText.unobserve(cb); } catch (e) { /* ignore */ }
-          }
-        });
-        yTextObserversRef.current.clear();
-      }
-
-      // clear local awareness state so other peers no longer see us
-      if (yProviderRef.current && yProviderRef.current.awareness) {
-        try {
-          yProviderRef.current.awareness.setLocalState(null);
-        } catch (e) {
-          console.warn('Failed to clear local awareness state', e);
-        }
-      }
-
-      // disconnect and destroy the provider, then destroy the Y.Doc
       if (yProviderRef.current) {
-        try { yProviderRef.current.disconnect(); } catch (e) { /* ignore */ }
-        try { yProviderRef.current.destroy(); } catch (e) { /* ignore */ }
+        try { yProviderRef.current.disconnect(); yProviderRef.current.destroy(); } catch (e) {}
         yProviderRef.current = null;
       }
-
       if (ydocRef.current) {
-        try { ydocRef.current.destroy(); } catch (e) { /* ignore */ }
+        try { ydocRef.current.destroy(); } catch (e) {}
         ydocRef.current = null;
       }
     };
-  }, []);
-
-  const handleDisconnect = () => {
-    if(socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current.off(ACTIONS.JOIN_ROOM);
-      socketRef.current.off(ACTIONS.DISCONNECTED);
-      socketRef.current.off(ACTIONS.FILE_CREATE);
-      socketRef.current.off(ACTIONS.FILE_DELETE);
-      socketRef.current.off(ACTIONS.FILE_RENAME);
-      socketRef.current.off(ACTIONS.FILE_REORDER);
-    }
-  }
-
-  const handleErrors = (e) => {
-    console.log('socket error', e);
-    toast.error('Socket connection failed, try again later.');
-    navigate('/collab');
-  }
+  }, [id]);
 
   const handleCreateFile = async (fileData) => {
     try {
-      const config = {
-        headers: {
-          Authorization: user?.accessToken
-        }
-      };
+      const config = { headers: { Authorization: user?.accessToken } };
       const response = await axios.post(`${apiURL}/codes/${id}/files`, fileData, config);
       if (response.status === 201) {
         const newFile = response.data.file;
-        setFiles(response.data.files);
+        
+        setFiles(prev => {
+          if (prev.some(f => f.id === newFile.id)) return prev;
+          return [...prev, newFile];
+        });
         setActiveFileId(newFile.id);
 
         if (yFileContentsRef.current && !yFileContentsRef.current.has(newFile.id)) {
@@ -342,148 +378,111 @@ const CollabPlayground = () => {
           attachYTextObserver(newFile.id, yText);
         }
 
-        // Broadcast to other collaborators
-        if(socketRef.current && location?.state?.roomId) {
-          socketRef.current.emit(ACTIONS.FILE_CREATE, {
-            file: newFile,
-            room: location?.state?.roomId
-          });
+        const activeRoomId = canonicalRoomId || location?.state?.roomId || id;
+        if (socketRef.current && socketRef.current.connected) {
+          console.debug('[socket] emitting FILE_CREATE', { fileId: newFile.id, room: activeRoomId });
+          socketRef.current.emit(ACTIONS.FILE_CREATE, { file: newFile, room: activeRoomId });
         }
+        setTimeout(() => schedulePreviewRebuild(), 100);
       }
     } catch (error) {
-      console.log(error);
       toast.error('Failed to create file');
     }
   };
 
   const handleUpdateFile = async (fileId, content) => {
-    try {
-      const config = {
-        headers: {
-          Authorization: user?.accessToken
+    setFiles(prev => prev.map(f => f.id === fileId ? { ...f, content } : f));
+
+    // Only update yText directly if NOT using MonacoBinding (MonacoBinding syncs automatically)
+    const isUsingMonacoBinding = isRoom && yFileContentsRef.current?.has(fileId);
+    if (!isUsingMonacoBinding && yFileContentsRef.current && yFileContentsRef.current.has(fileId)) {
+      const yText = yFileContentsRef.current.get(fileId);
+      console.debug('[file] local update to yText', { fileId, existingLen: yText.length, newLen: (content || '').length });
+      if (yText.toString() !== content) {
+        try {
+          yText.delete(0, yText.length);
+          yText.insert(0, content || '');
+        } catch (e) {
+          console.error('[file] failed to update yText', e);
         }
-      };
-      const response = await axios.put(`${apiURL}/codes/${id}/files/${fileId}`, { content }, config);
-      if (response.status === 200) {
-        setFiles(response.data.files);
       }
-    } catch (error) {
-      console.log(error);
-      toast.error('Failed to update file');
     }
+    console.debug('[file] schedule preview rebuild after update', { fileId });
+    schedulePreviewRebuild();
   };
 
   const handleRenameFile = async (fileId, newName) => {
     try {
-      const config = {
-        headers: {
-          Authorization: user?.accessToken
-        }
-      };
+      const config = { headers: { Authorization: user?.accessToken } };
       const response = await axios.put(`${apiURL}/codes/${id}/files/${fileId}`, { name: newName }, config);
       if (response.status === 200) {
-        setFiles(response.data.files);
-        
-        // Broadcast to other collaborators
-        if(socketRef.current && location?.state?.roomId) {
-          socketRef.current.emit(ACTIONS.FILE_RENAME, {
-            fileId,
-            name: newName,
-            room: location?.state?.roomId
-          });
+        setFiles(prev => prev.map(f => f.id === fileId ? { ...f, name: newName } : f));
+        const activeRoomId = canonicalRoomId || location?.state?.roomId || id;
+        if (socketRef.current && socketRef.current.connected) {
+          socketRef.current.emit(ACTIONS.FILE_RENAME, { fileId, name: newName, room: activeRoomId });
         }
       }
     } catch (error) {
-      console.log(error);
       toast.error('Failed to rename file');
     }
   };
 
   const handleDeleteFile = async (fileId) => {
     try {
-      const config = {
-        headers: {
-          Authorization: user?.accessToken
-        }
-      };
+      const config = { headers: { Authorization: user?.accessToken } };
       const response = await axios.delete(`${apiURL}/codes/${id}/files/${fileId}`, config);
       if (response.status === 200) {
-        setFiles(response.data.files);
-        
-        if (activeFileId === fileId) {
-          setActiveFileId(response.data.files[0]?.id || null);
-        }
-
-          if (yFileContentsRef.current) {
-            const yText = yFileContentsRef.current.get(fileId);
-            const cb = yTextObserversRef.current.get(fileId);
-            if (yText && cb) {
-              yText.unobserve(cb);
-              yTextObserversRef.current.delete(fileId);
-            }
-            yFileContentsRef.current.delete(fileId);
+        setFiles(prev => {
+          const filtered = prev.filter(f => f.id !== fileId);
+          if (activeFileIdRef.current === fileId) {
+            setActiveFileId(filtered[0]?.id || null);
           }
+          return filtered;
+        });
 
-        // Broadcast to other collaborators
-        if(socketRef.current && location?.state?.roomId) {
-          socketRef.current.emit(ACTIONS.FILE_DELETE, {
-            fileId,
-            room: location?.state?.roomId
-          });
+        if (yFileContentsRef.current) {
+          const yText = yFileContentsRef.current.get(fileId);
+          const cb = yTextObserversRef.current.get(fileId);
+          if (yText && cb) {
+            try { yText.unobserve(cb); } catch (e) {}
+            yTextObserversRef.current.delete(fileId);
+          }
+          yFileContentsRef.current.delete(fileId);
         }
+
+        const activeRoomId = canonicalRoomId || location?.state?.roomId || id;
+        if (socketRef.current && socketRef.current.connected) {
+          socketRef.current.emit(ACTIONS.FILE_DELETE, { fileId, room: activeRoomId });
+        }
+        setTimeout(() => schedulePreviewRebuild(), 100);
       }
     } catch (error) {
-      console.log(error);
       toast.error('Failed to delete file');
     }
   };
 
-  const compileCode = () => {
-    // build preview from files and return srcDoc via previewBuilder
-    // (handled by effect below; keep function for compatibility)
-    return '';
-  };
-
-  const getLegacyValues = () => {
-    const htmlFile = files.find(f => f.extension === 'html');
-    const cssFile = files.find(f => f.extension === 'css');
-    const jsFile = files.find(f => f.extension === 'js');
-    return {
-      htmlValue: htmlFile?.content || '',
-      cssValue: cssFile?.content || '',
-      jsValue: jsFile?.content || ''
-    };
-  };
-
-  const { htmlValue, cssValue, jsValue } = getLegacyValues();
   const activeFile = files.find(f => f.id === activeFileId);
-
-  const previewBlobUrlsRef = useRef([]);
-  const [previewSrcDoc, setPreviewSrcDoc] = useState('');
-
-  useEffect(() => {
-    filesRef.current = files;
-  }, [files]);
-
-  useEffect(() => {
-    // Rebuild preview from the canonical source: if Yjs text map exists use it, else use `files` content
-    rebuildPreview();
-
-    return () => {
-      previewBuilder.revokeBlobUrls(previewBlobUrlsRef.current || []);
-      previewBlobUrlsRef.current = [];
-    };
-  }, [files, title]);
 
   return (
     <div className='playground__page__wrapper'>
       <div className='playground__nav__wrapper'>
-        <CollabNav htmlValue={htmlValue} cssValue={cssValue} jsValue={jsValue} title={title} setTitle={setTitle} roomId={location?.state?.roomId} isAdmin={isAdmin} id={id} owner={owner} handleDisconnect={handleDisconnect} clients={activeClients}/>
-        <button onClick={() => {setCollapsed(!collapsed)}} className='collapse-btn'>
-          {collapsed ? (<IoIosArrowDropdown />) : (<IoIosArrowDropup />)}
+        <CollabNav 
+          title={title} 
+          setTitle={setTitle} 
+          roomId={canonicalRoomId || id}
+          isAdmin={isAdmin} 
+          id={id} 
+          owner={owner} 
+          handleDisconnect={() => navigate('/collab')} 
+          clients={activeClients} 
+          onSaveWhiteboard={() => whiteboardSaveRef.current?.()} 
+          onOpenBrainstorm={openBrainstorm} 
+        />
+        <button onClick={() => setCollapsed(!collapsed)} className='collapse-btn'>
+          {collapsed ? <IoIosArrowDropdown /> : <IoIosArrowDropup />}
         </button>
       </div>
-      <div className='playground__editor__container' style={{display : collapsed ? 'none' : 'grid'}}>
+      <div className='playground__editor__container' style={{ display: collapsed ? 'none' : 'grid' }}>
         <div className='file-explorer-pane'>
           <FileExplorer
             files={files}
@@ -507,8 +506,19 @@ const CollabPlayground = () => {
           <iframe title="myDoc" srcDoc={previewSrcDoc}></iframe>
         </div>
       </div>
+      <DraggableResizableModal isOpen={isBrainstormOpen} closeModal={closeBrainstorm} title="Brainstorm Board">
+        <Whiteboard
+          isRoom={isRoom}
+          yDoc={ydocRef.current}
+          id={id}
+          initialData={whiteboardData}
+          whiteboardSaveRef={whiteboardSaveRef}
+          apiURL={apiURL}
+          accessToken={user?.accessToken}
+        />
+      </DraggableResizableModal>
     </div>
-  )
-}
+  );
+};
 
-export default CollabPlayground
+export default CollabPlayground;

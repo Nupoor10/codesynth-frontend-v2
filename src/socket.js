@@ -3,10 +3,12 @@ const socketURL = import.meta.env.VITE_SOCKET_URL;
 
 export const initSocket = async () => {
     const options = {
-        'force new connection': true,
-        reconnectionAttempt: 'Infinity',
+        reconnectionAttempts: Infinity,
         timeout: 10000,
-        transports: ['websocket'],
+        // allow polling fallback — some environments fail when forcing websocket-only
+        transports: ['polling', 'websocket'],
+        // ensure we hit the default socket.io path
+        path: '/socket.io',
     };
     return io(socketURL, options);
 };

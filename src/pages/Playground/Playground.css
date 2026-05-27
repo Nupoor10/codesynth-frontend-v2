@@ -32,6 +32,35 @@
   background-color: #3e3e42;
 }
 
+.tab-controller {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #3e3e42;
+  background-color: #1e1e1e;
+}
+
+.tab-button {
+  padding: 10px 18px;
+  border-radius: 9999px;
+  border: 1px solid #3e3e42;
+  background-color: #2d2d2d;
+  color: #d4d4d4;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.tab-button.active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.tab-button:hover {
+  background-color: #3b82f6;
+}
+
 .collapse-btn {
   flex-shrink: 0;
 }

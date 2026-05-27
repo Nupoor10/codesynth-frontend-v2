@@ -10,13 +10,17 @@ const isExternal = (url) => {
 };
 
 function buildPreview(files = [], entryName, title) {
+  console.debug('[previewBuilder] buildPreview called', { time: Date.now(), fileIds: files.map(f => f.id) });
   // Choose entry HTML
   let entry = null;
   if (entryName) entry = findFileByName(files, entryName);
   if (!entry) entry = files.find(f => f.name.toLowerCase() === 'index.html');
   if (!entry) entry = files.find(f => f.extension === 'html');
 
-  const entryContent = entry?.content || '<!doctype html><html><head><meta charset="utf-8"><title></title></head><body></body></html>';
+  const entryContent = entry?.content || '';
+  if (!entryContent.trim()) {
+    return { srcDoc: '', blobUrls: [] };
+  }
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(entryContent, 'text/html');
@@ -60,9 +64,14 @@ function buildPreview(files = [], entryName, title) {
     }
   }
 
+  // const head = doc.querySelector('head') || doc.documentElement.appendChild(doc.createElement('head'));
+  // const style = doc.createElement('style');
+  // style.textContent = 'html, body { margin: 0; padding: 0; background: white; color: black; min-height: 100%; }';
+  // head.appendChild(style);
+
   const serializer = new XMLSerializer();
   const html = serializer.serializeToString(doc);
-  const srcDoc = '<!DOCTYPE html>\n' + html;
+  const srcDoc = html;
 
   return { srcDoc, blobUrls };
 }

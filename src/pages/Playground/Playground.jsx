@@ -6,6 +6,8 @@ import axios from 'axios';
 import PlaygroundNav from '../../components/PlaygroundNav/PlaygroundNav';
 import FileExplorer from '../../components/FileExplorer/FileExplorer';
 import CodeEditor from '../../components/CodeEditor/CodeEditor';
+import Whiteboard from '../../components/Whiteboard/Whiteboard';
+import DraggableResizableModal from '../../components/Modal/DraggableResizableModal';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import "./Playground.css"
 const apiURL = import.meta.env.VITE_BACKEND_URL;
@@ -20,8 +22,11 @@ const Playground = () => {
   const [ activeFileId, setActiveFileId] = useState(null);
   const [title, setTitle] = useState('');
   const [owner, setOwner] = useState(null);
+  const [whiteboardData, setWhiteboardData] = useState('');
+  const [isBrainstormOpen, setIsBrainstormOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [ collapsed, setCollapsed] = useState(false);
+  const whiteboardSaveRef = useRef(null);
 
   useEffect(() => {
     const fetchCode = async() => {
@@ -40,6 +45,7 @@ const Playground = () => {
               setActiveFileId(codeDoc.files[0].id);
             }
             setTitle(codeDoc?.title);
+            setWhiteboardData(codeDoc?.whiteboardData || '');
             setOwner(codeDoc?.owner.username)
             if(codeDoc?.owner?.username !== user.name) {
               setIsGuest(true);
@@ -57,6 +63,8 @@ const Playground = () => {
   }, [id, user])
 
   const activeFile = files.find(f => f.id === activeFileId);
+  const openBrainstorm = () => setIsBrainstormOpen(true);
+  const closeBrainstorm = () => setIsBrainstormOpen(false);
 
   const handleCreateFile = async (fileData) => {
     try {
@@ -132,38 +140,52 @@ const Playground = () => {
   };
 
   const previewBlobUrlsRef = useRef([]);
+  const previewTimeoutRef = useRef(null);
   const [previewSrcDoc, setPreviewSrcDoc] = useState('');
 
   useEffect(() => {
-    const { srcDoc, blobUrls } = previewBuilder.buildPreview(files, undefined, title);
-    // revoke previous blobs
-    previewBuilder.revokeBlobUrls(previewBlobUrlsRef.current || []);
-    previewBlobUrlsRef.current = blobUrls || [];
-    setPreviewSrcDoc(srcDoc);
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current);
+    }
+
+    previewTimeoutRef.current = window.setTimeout(() => {
+      const { srcDoc, blobUrls } = previewBuilder.buildPreview(files, undefined, title);
+      previewBuilder.revokeBlobUrls(previewBlobUrlsRef.current || []);
+      previewBlobUrlsRef.current = blobUrls || [];
+      setPreviewSrcDoc(srcDoc);
+    }, 2000);
 
     return () => {
-      previewBuilder.revokeBlobUrls(previewBlobUrlsRef.current || []);
-      previewBlobUrlsRef.current = [];
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current);
+      }
     };
   }, [files, title]);
 
-  const getLegacyValues = () => {
-    const htmlFile = files.find(f => f.extension === 'html');
-    const cssFile = files.find(f => f.extension === 'css');
-    const jsFile = files.find(f => f.extension === 'js');
-    return {
-      htmlValue: htmlFile?.content || '',
-      cssValue: cssFile?.content || '',
-      jsValue: jsFile?.content || ''
+  useEffect(() => {
+    return () => {
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current);
+      }
+      previewBuilder.revokeBlobUrls(previewBlobUrlsRef.current || []);
+      previewBlobUrlsRef.current = [];
     };
-  };
+  }, []);
 
-  const { htmlValue, cssValue, jsValue } = getLegacyValues();
+
 
   return (
     <div className='playground__page__wrapper'>
       <div className='playground__nav__wrapper'>
-        <PlaygroundNav htmlValue={htmlValue} cssValue={cssValue} jsValue={jsValue} title={title} setTitle={setTitle} isGuest={isGuest} id={id} owner={owner}/>
+        <PlaygroundNav
+          title={title}
+          setTitle={setTitle}
+          isGuest={isGuest}
+          id={id}
+          owner={owner}
+          onSaveWhiteboard={() => whiteboardSaveRef.current?.()}
+          onOpenBrainstorm={openBrainstorm}
+        />
         <button onClick={() => {setCollapsed(!collapsed)}} className='collapse-btn'>
           {collapsed ? (<IoIosArrowDropdown />) : (<IoIosArrowDropup />)}
         </button>
@@ -190,6 +212,21 @@ const Playground = () => {
           <iframe title="myDoc" srcDoc={previewSrcDoc}></iframe>
         </div>
       </div>
+      <DraggableResizableModal
+        isOpen={isBrainstormOpen}
+        closeModal={closeBrainstorm}
+        title="Brainstorm Board"
+      >
+        <Whiteboard
+          isRoom={false}
+          yDoc={null}
+          id={id}
+          initialData={whiteboardData}
+          whiteboardSaveRef={whiteboardSaveRef}
+          apiURL={apiURL}
+          accessToken={user?.accessToken}
+        />
+      </DraggableResizableModal>
     </div>
   )
 }

@@ -51,13 +51,11 @@ const Collaborate = () => {
     const handleCodeCreation = async (config) => {
         try {
           const body = {
-            html: '<h1>Welcome to CodeSynth</h1>',
-            css: 'body {\n\tbackground: linear-gradient(109.6deg, rgb(20, 30, 48) 11.2%, rgb(36, 59, 85) 91.1%);\n\tcolor : #ffffff \n}',
-            js: '',
+            // minimal create payload; backend will initialize a blank index.html
             isRoom: true,
             title: 'Demo Container',
           };
-      
+
           const response = await axios.post(`${apiURL}/codes/create`, body, config);
       
           if (response && response.status === 201 && response.data.codeDoc) {

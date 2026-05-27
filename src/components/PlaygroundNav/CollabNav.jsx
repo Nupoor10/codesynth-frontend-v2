@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaRegSave, FaUsers } from 'react-icons/fa';
+import { FaRegSave, FaUsers, FaRegLightbulb } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import Modal from '../Modal/Modal';
@@ -10,9 +10,9 @@ import './PlaygroundNav.css';
 
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
-const PlaygroundNav = ({ htmlValue, cssValue, jsValue, title, setTitle, roomId, owner, isAdmin, id, handleDisconnect, clients }) => {
+const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisconnect, clients, onSaveWhiteboard, onOpenBrainstorm }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('settings');
+  const [activeMenu, setActiveMenu] = useState('settings');
   const [participants, setParticipants] = useState([]);
   const navigate = useNavigate();
 
@@ -27,10 +27,12 @@ const PlaygroundNav = ({ htmlValue, cssValue, jsValue, title, setTitle, roomId, 
   };
 
   const handleSelectChange = (event) => {
-    setActiveTab(event.target.value);
-    if(event.target.value === 'users') {
+    setActiveMenu(event.target.value);
+    if (event.target.value === 'users') {
       openModal(event.target.value);
-    } else if(event.target.value === 'copyid') {
+    } else if (event.target.value === 'brainstorm') {
+      onOpenBrainstorm?.();
+    } else if (event.target.value === 'copyid') {
       copyIDToClipboard();
     } else {
       handleLeave();
@@ -38,30 +40,27 @@ const PlaygroundNav = ({ htmlValue, cssValue, jsValue, title, setTitle, roomId, 
   };
 
   useEffect(() => {
-    const fetchRoom = async() => {
-      try {
-        if (user && roomId) {
-          const config = {
-            headers: {
-              Authorization: user?.accessToken,
-            },
-          };
-          const response = await axios.get(
-            `${apiURL}/rooms/users/${roomId}`,
-            config
-          );
-          if (response && response.status === 200) {
-            setParticipants(response.data.allUsers);
-          }
+  const fetchRoom = async() => {
+    try {
+      if (user && roomId) {
+        const config = { headers: { Authorization: user?.accessToken } };
+        const response = await axios.get(`${apiURL}/rooms/users/${roomId}`, config);
+        
+        if (response && response.status === 200) {
+          setParticipants(response.data.allUsers);
         }
-      } catch (error) {
-        console.log(error);
-        toast.error(error?.message);
       }
+    } catch (error) {
+      console.error("Failed fetching standard participant rosters:", error);
     }
+  };
 
-    fetchRoom();
-  }, [user, roomId]);
+  // FIX: Reset local state back to empty whenever the room ID updates 
+  // This clears out old room lists instantly and forces a clean re-render
+  setParticipants([]); 
+  
+  fetchRoom();
+}, [user, roomId]);
 
   const saveCode = async () => {
     try {
@@ -75,9 +74,6 @@ const PlaygroundNav = ({ htmlValue, cssValue, jsValue, title, setTitle, roomId, 
           `${apiURL}/codes/update/${id}`,
           {
             title,
-            html: htmlValue,
-            css: cssValue,
-            javascript: jsValue,
             isRoom: true,
           },
           config
@@ -93,8 +89,16 @@ const PlaygroundNav = ({ htmlValue, cssValue, jsValue, title, setTitle, roomId, 
   };
 
   const copyIDToClipboard = () => {
-    navigator.clipboard.writeText(roomId);
-    toast.success("Copied Room ID to Clipboard");
+    // Pulls roomId property, falls back safely to document identity key if empty
+    const accurateIdToShare = roomId || id;
+    
+    if (!accurateIdToShare) {
+      toast.error("Room ID not generated yet. Please wait.");
+      return;
+    }
+    
+    navigator.clipboard.writeText(accurateIdToShare);
+    toast.success("Copied Room ID to Clipboard!");
   };
   
   const handleLeave = () => {
@@ -120,16 +124,18 @@ const PlaygroundNav = ({ htmlValue, cssValue, jsValue, title, setTitle, roomId, 
         </button>
       </div>
       <div className='playground__controls__container'>
+          <button className='colored__btn' onClick={() => onOpenBrainstorm?.()}><FaRegLightbulb /></button>
           <button className='colored__btn' onClick={copyIDToClipboard}>Copy ID</button>
           <button className='colored__btn' onClick={handleLeave}>Leave Room</button>
           <button className='colored__btn' onClick={() => openModal()}><FaUsers /></button>
         </div>
         <div className="playground__controls__container__mobile">
-          <select value={activeTab} onChange={handleSelectChange}>
+          <select value={activeMenu} onChange={handleSelectChange}>
             <option disabled hidden value="settings">
               Settings
             </option>
             <option value="users">Users 🧑🏼‍🦰</option>
+            <option value="brainstorm">Brainstorm Board 💡</option>
             <option value="copyid">Copy ID 📜</option>
             <option value="exit">Leave Room</option>
           </select>
