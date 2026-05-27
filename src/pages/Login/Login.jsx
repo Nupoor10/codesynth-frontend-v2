@@ -41,35 +41,58 @@ const Login = () => {
 	}
 
   return (
-    <div className='login__page__wrapper'>
-		<div className='login__container'>
-			<h1>Login To CodeSynth</h1>
-			<div className='login__form'>
-				<div>
-					<input
-						className='login__input'
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						type="email"
-						placeholder="Email"
-					/>
-					<br />
-					<input
-						className='login__input'
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						type="password"
-						placeholder="Password"
-					/>
-					<br />
-					<button type="submit" className="login__btn" onClick={handleLogin}>Login</button>
-					<h3>Not Registered Yet? <Link to='/register'>Click Here</Link> to Register</h3>
-				</div>
-			</div>
-		</div>
-        
-		<Footer />
-	</div>
+    <div className="login__page__wrapper">
+
+    <div className="login__container">
+
+        <h1>Welcome Back</h1>
+
+        <p className="login__subtitle">
+            Login to continue coding and collaborating.
+        </p>
+
+        <div className="login__form">
+
+            <div className="login__form__inner">
+
+                <input
+                    className="login__input"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    placeholder="Email"
+                />
+
+                <input
+                    className="login__input"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    type="password"
+                    placeholder="Password"
+                />
+
+                <button
+                    type="submit"
+                    className="login__btn"
+                    onClick={handleLogin}
+                >
+                    Sign In
+                </button>
+
+                <h3>
+                    Don’t have an account?{" "}
+                    <Link to="/register">Create One</Link>
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <Footer />
+
+</div>
   )
 }
 

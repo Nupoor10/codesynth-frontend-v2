@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import HomeCard from '../../components/HomeCard/HomeCard';
 import Footer from "../../components/Footer/Footer";
+import Navbar from '../../components/Navbar/Navbar';
 import "./Home.css";
 
 const Home = () => {
@@ -23,31 +24,62 @@ const Home = () => {
   };
 
   return (
-    <div>
-      <div className='home__page__wrapper'>
-        <div className='home__page__header'>
-        <div className='centered-content'>
-          <h1>Welcome to CodeSynth⚙️</h1>
+    <div className="home__page__wrapper">
+
+    <div className="home__page__content__wrapper">
+
+        <Navbar
+    toggleDropdown={toggleDropdown}
+    isOpen={isOpen}
+    dropdownRef={dropdownRef}
+    handleLogout={handleLogout}
+/>
+
+        <div className="home__hero">
+
+            <span className="home__badge">
+                AI-Powered Collaborative Coding
+            </span>
+
+            <h2>
+                Build, Collaborate, and Code
+                <br />
+                Smarter Together
+            </h2>
+
+            <p>
+                CodeSynth helps developers collaborate in real-time,
+                manage coding workspaces, and build projects faster
+                with intelligent tooling.
+            </p>
+
         </div>
-        <div className='dashboard__header__icons__container'>
-          <FaUserCircle className='dashboard__header__icons' onClick={toggleDropdown}/>
-          <div style={{display : isOpen ? "block" : "none"}} className="user-dropdown" ref={dropdownRef} onClick={handleLogout}>Logout</div>
+
+        <div className="home__page__cards">
+
+            <HomeCard
+                title={"My Codes"}
+                text={
+                    "Manage your personal code playgrounds, revisit projects, and continue building seamlessly."
+                }
+                path={"/mycodes"}
+            />
+
+            <HomeCard
+                title={"Collaborate"}
+                text={
+                    "Create or join live coding rooms and work together with developers in real-time."
+                }
+                path={"/collab"}
+            />
+
         </div>
-        </div>
-        <div className='home__page__content'>
-          <p>CodeSynth is a collaborative coding platform built to help developers of every skill level.</p>
-          <div className='home__page__cards'>
-            <HomeCard title={"My Codes👩‍💻 ➡️"}
-            text={"Manage your personal code playgrounds, update your projects, and continue building in one place."}
-            path ={"/mycodes"}/>
-            <HomeCard title={"Collaborate 🤝 ➡️"}
-            text={"Join or create real-time coding rooms to collaborate with others and build together."}
-            path ={"/collab"}/>
-          </div>
-        </div>
-      </div>
-      <Footer />
+
     </div>
+
+    <Footer />
+
+</div>
   )
 }
 

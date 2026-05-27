@@ -1,26 +1,127 @@
 .single__code__container {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #2A3439;
-    border-radius: 10px;
-    padding: 15px;
-    margin: 20px 0px;
-    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.5);
-    width: 94%;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 24px 28px;
+
+  border-radius: 22px;
+
+  background: rgba(17, 24, 39, 0.75);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(16px);
+
+  transition:
+    transform 0.25s ease,
+    border 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .single__code__container:hover {
-    transform: scale(1.02);
-}
+  transform: translateY(-4px);
 
-.code__container__btn {
-    cursor: pointer;
-    font-size: 32px;
-    margin: 0;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+
+  background: rgba(30, 41, 59, 0.8);
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.35);
 }
 
 .code__details__div {
-    text-align: left;
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  text-align: left;
+}
+
+.code__details__div p:first-child {
+  font-size: 1.15rem;
+
+  font-weight: 600;
+
+  color: #f8fafc;
+}
+
+.code__details__div p:last-child {
+  font-size: 0.95rem;
+
+  color: #94a3b8;
+}
+
+.code__actions {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+.code__container__btn {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.05);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  cursor: pointer;
+
+  color: #f8fafc;
+
+  font-size: 1.1rem;
+
+  transition:
+    transform 0.2s ease,
+    background 0.25s ease,
+    border 0.25s ease,
+    color 0.25s ease;
+}
+
+.code__container__btn:first-child:hover {
+  background: rgba(239, 68, 68, 0.12);
+
+  border: 1px solid rgba(239, 68, 68, 0.3);
+
+  color: #fca5a5;
+}
+
+.code__container__btn:last-child:hover {
+  background: rgba(124, 58, 237, 0.12);
+
+  border: 1px solid rgba(139, 92, 246, 0.3);
+
+  color: #c4b5fd;
+}
+
+@media screen and (max-width: 768px) {
+
+  .single__code__container {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .code__actions {
+    width: 100%;
+
+    justify-content: flex-end;
+  }
 }

@@ -1,39 +1,404 @@
 .usercodes__page__wrapper {
-  background: linear-gradient(114.3deg, rgb(19, 126, 57) 0.2%, rgb(8, 65, 91) 68.5%);  
-  padding: 50px;
   min-height: 100vh;
-  color: white;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  background:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.15), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.12), transparent 30%),
+    #0b0f19;
+
+  color: #ffffff;
+
+  overflow-x: hidden;
+}
+
+.usercodes__content__wrapper {
+  flex: 1;
+
+  width: 100%;
+  max-width: 1300px;
+
+  margin: 0 auto;
+
+  padding: 40px 24px 80px;
+}
+
+/* =========================
+   NAVBAR
+========================= */
+
+.usercodes__navbar {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px 24px;
+
+  margin-bottom: 80px;
+
+  border-radius: 24px;
+
+  background: rgba(15, 23, 42, 0.65);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(16px);
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.usercodes__navbar__left {
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+}
+
+.back__btn {
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.05);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  color: #f8fafc;
+
+  font-size: 1.4rem;
+
+  cursor: pointer;
+
+  transition:
+    background 0.25s ease,
+    transform 0.2s ease;
+}
+
+.back__btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+
+  transform: translateX(-2px);
+}
+
+.usercodes__title {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.usercodes__title__icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background: linear-gradient(
+    135deg,
+    #7c3aed,
+    #6366f1
+  );
+
+  box-shadow:
+    0 8px 20px rgba(124, 58, 237, 0.3);
+}
+
+.usercodes__title h1 {
+  font-size: 1.6rem;
+
+  font-weight: 700;
+
+  letter-spacing: -0.5px;
+
+  color: #f8fafc;
+}
+
+/* =========================
+   HERO
+========================= */
+
+.usercodes__hero {
+  max-width: 850px;
+
+  margin: 0 auto 70px;
+
   text-align: center;
 }
 
-.usercodes__page__header {
-  display: flex;
-  flex-direction: row;
+.usercodes__badge {
+  display: inline-flex;
   align-items: center;
+
+  padding: 10px 18px;
+
+  margin-bottom: 28px;
+
+  border-radius: 999px;
+
+  background: rgba(124, 58, 237, 0.12);
+
+  border: 1px solid rgba(139, 92, 246, 0.25);
+
+  color: #c4b5fd;
+
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
-.usercodes__page__header > h2 {
-  cursor: pointer;
+.usercodes__hero h2 {
+  font-size: 3.5rem;
+
+  line-height: 1.1;
+
+  letter-spacing: -2px;
+
+  margin-bottom: 24px;
+
+  color: #f8fafc;
 }
 
-.usercodes__page__content {
+.usercodes__hero p {
+  font-size: 1.1rem;
+
+  line-height: 1.8;
+
+  color: #94a3b8;
+}
+
+/* =========================
+   ACTION SECTION
+========================= */
+
+.usercodes__actions__section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.usercodes__actions__grid {
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin: 0 auto 56px;
+}
+
+.usercodes__action__card {
+  width: 100%;
+  max-width: 760px;
+
+  padding: 24px 28px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  border-radius: 24px;
+
+  background: rgba(15, 23, 42, 0.65);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(16px);
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
-.usercodes__page__content > p {
-  font-size: 22px;
+.usercodes__action__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  margin-bottom: 12px;
 }
 
-.usercodes__page__content > button {
-  font-size: 16px;
-  padding: 10px;
+.usercodes__action__icon {
+  font-size: 1.5rem;
+
+  color: #c4b5fd;
+}
+
+.usercodes__action__header h3 {
+  font-size: 1.4rem;
+
+  color: #f8fafc;
+}
+
+.usercodes__action__text {
+  max-width: 560px;
+
+  color: #94a3b8;
+
+  line-height: 1.7;
+
+  margin-bottom: 20px;
+}
+
+.create__code__btn {
+  padding: 13px 22px;
+
+  border: none;
+
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    #7c3aed,
+    #6366f1
+  );
+
+  color: white;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    opacity 0.25s ease;
+
+  box-shadow:
+    0 10px 25px rgba(124, 58, 237, 0.25);
+}
+
+.create__code__btn:hover {
+  transform: translateY(-2px);
+
+  opacity: 0.95;
+}
+
+/* =========================
+   CONTENT
+========================= */
+
+.usercodes__page__content {
+  width: 100%;
+
+  margin-top: 30px; 
 }
 
 .usercodes__grid__container {
   display: flex;
   flex-direction: column;
+
+  gap: 22px;
+}
+
+.empty__codes__state {
   width: 100%;
-  margin-top: 2rem;
+
+  padding: 80px 24px;
+
+  border-radius: 24px;
+
+  background: rgba(15, 23, 42, 0.45);
+
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  text-align: center;
+}
+
+.empty__codes__state h3 {
+  font-size: 1.8rem;
+
+  margin-bottom: 12px;
+
+  color: #f8fafc;
+}
+
+.empty__codes__state p {
+  color: #94a3b8;
+
+  font-size: 1rem;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media screen and (max-width: 992px) {
+
+  .usercodes__hero h2 {
+    font-size: 3rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+
+  .usercodes__navbar {
+    margin-bottom: 60px;
+  }
+
+  .usercodes__hero h2 {
+    font-size: 2.5rem;
+  }
+
+  .usercodes__hero p {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (max-width: 520px) {
+
+  .usercodes__content__wrapper {
+    padding: 28px 18px 60px;
+  }
+
+  .usercodes__navbar {
+    padding: 18px;
+
+    margin-bottom: 50px;
+  }
+
+  .usercodes__title h1 {
+    font-size: 1.3rem;
+  }
+
+  .usercodes__hero h2 {
+    font-size: 2rem;
+  }
+
+  .usercodes__actions__grid {
+    margin-bottom: 60px;
+  }
+
+  .usercodes__action__card {
+    padding: 28px 22px;
+  }
+
+  .usercodes__action__header {
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  .create__code__btn {
+    width: 100%;
+  }
 }

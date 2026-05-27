@@ -12,6 +12,10 @@ import Whiteboard from '../../components/Whiteboard/Whiteboard';
 import DraggableResizableModal from '../../components/Modal/DraggableResizableModal';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import ACTIONS from '../../constants/Actions';
+import {
+  FiMaximize2,
+  FiMinimize2
+} from "react-icons/fi";
 import { initSocket } from '../../socket';
 import "./Playground.css"
 import previewBuilder from '../../utils/previewBuilder';
@@ -27,7 +31,7 @@ const CollabPlayground = () => {
   const [isBrainstormOpen, setIsBrainstormOpen] = useState(false);
   const [owner, setOwner] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [activeClients, setActiveClients] = useState([]);
   const [previewSrcDoc, setPreviewSrcDoc] = useState('');
   const [canonicalRoomId, setCanonicalRoomId] = useState('');
@@ -515,8 +519,10 @@ const CollabPlayground = () => {
   const activeFile = files.find(f => f.id === activeFileId);
 
   return (
-    <div className='playground__page__wrapper'>
-      <div className='playground__nav__wrapper'>
+    <div className="playground__page__wrapper">
+
+    <div className="playground__nav__wrapper">
+
         <CollabNav 
           title={title} 
           setTitle={setTitle} 
@@ -530,46 +536,86 @@ const CollabPlayground = () => {
           onOpenBrainstorm={openBrainstorm} 
           socket={socketRef.current} // 💡 FIX: Pass socket down to handle notification broadcasts
         />
-        <button onClick={() => setCollapsed(!collapsed)} className='collapse-btn'>
-          {collapsed ? <IoIosArrowDropdown /> : <IoIosArrowDropup />}
+
+        <button
+            onClick={() =>
+                setIsPreviewMode(!isPreviewMode)
+            }
+            className="preview-toggle-btn"
+            title={
+                isPreviewMode
+                    ? "Exit Preview Mode"
+                    : "Enter Preview Mode"
+            }
+        >
+            {isPreviewMode
+                ? <FiMinimize2 />
+                : <FiMaximize2 />}
         </button>
-      </div>
-      <div className='playground__editor__container' style={{ display: collapsed ? 'none' : 'grid' }}>
-        <div className='file-explorer-pane'>
-          <FileExplorer
-            files={files}
-            activeFileId={activeFileId}
-            onSelectFile={setActiveFileId}
-            onCreateFile={handleCreateFile}
-            onDeleteFile={handleDeleteFile}
-            onRenameFile={handleRenameFile}
-          />
-        </div>
-        <div className='code-editor-pane'>
-          <CodeEditor
-            file={activeFile}
-            onFileChange={handleUpdateFile}
-            isRoom={isRoom}
-            yProvider={yProviderRef.current}
-            yFileContents={yFileContentsRef.current}
-          />
-        </div>
-        <div className='preview-pane'>
-          <iframe title="myDoc" srcDoc={previewSrcDoc}></iframe>
-        </div>
-      </div>
-      <DraggableResizableModal isOpen={isBrainstormOpen} closeModal={closeBrainstorm} title="Brainstorm Board">
-        <Whiteboard
-          isRoom={isRoom}
-          yDoc={ydocRef.current}
-          id={id}
-          initialData={whiteboardData}
-          whiteboardSaveRef={whiteboardSaveRef}
-          apiURL={apiURL}
-          accessToken={user?.accessToken}
-        />
-      </DraggableResizableModal>
+
     </div>
+
+    <div
+        className={`playground__editor__container ${
+            isPreviewMode
+                ? "preview-mode"
+                : ""
+        }`}
+    >
+
+        <div className="file-explorer-pane">
+
+            <FileExplorer
+                files={files}
+                activeFileId={activeFileId}
+                onSelectFile={setActiveFileId}
+                onCreateFile={handleCreateFile}
+                onDeleteFile={handleDeleteFile}
+                onRenameFile={handleRenameFile}
+            />
+
+        </div>
+
+        <div className="code-editor-pane">
+
+            <CodeEditor
+                file={activeFile}
+                onFileChange={handleUpdateFile}
+                isRoom={false}
+            />
+
+        </div>
+
+        <div className="preview-pane">
+
+            <iframe
+                title="myDoc"
+                srcDoc={previewSrcDoc}
+            />
+
+        </div>
+
+    </div>
+
+    <DraggableResizableModal
+        isOpen={isBrainstormOpen}
+        closeModal={closeBrainstorm}
+        title="Brainstorm Board"
+    >
+
+        <Whiteboard
+            isRoom={false}
+            yDoc={null}
+            id={id}
+            initialData={whiteboardData}
+            whiteboardSaveRef={whiteboardSaveRef}
+            apiURL={apiURL}
+            accessToken={user?.accessToken}
+        />
+
+    </DraggableResizableModal>
+
+</div>
   );
 };
 

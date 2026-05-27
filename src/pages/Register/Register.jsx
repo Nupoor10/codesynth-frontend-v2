@@ -33,43 +33,65 @@ const Register = () => {
   }
 
   return (
-    <div className='register__page__wrapper'>
-      	<div className='register__container'>
-			<h1>Register on CodeSynth</h1>
-			<div className='register__form'>
-				<div>
-					<input
-						className='register__input'
-						value={username}
-						onChange={(e) => setUserName(e.target.value)}
-						type="text"
-						placeholder="Username"
-					/>
-					<br />
-					<input
-						className='register__input'
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						type="email"
-						placeholder="Email"
-					/>
-					<br />
-					<input
-						className='register__input'
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						type="password"
-						placeholder="Password"
-					/>
-					<br />
-					<input type="submit" className="register__btn" value="Register" onClick={handleRegistration}></input>
-					<br />
-					<h3>Already Registered? <Link to='/'>Click Here</Link> to Login</h3>
-				</div>
-			</div>
-		  </div>
-		<Footer />
-    </div>   
+    <div className="register__page__wrapper">
+
+    <div className="register__container">
+
+        <h1>Create Account</h1>
+
+        <p className="register__subtitle">
+            Join CodeSynth and start collaborating.
+        </p>
+
+        <div className="register__form">
+
+            <div className="register__form__inner">
+
+                <input
+                    className="register__input"
+                    value={username}
+                    onChange={(e) => setUserName(e.target.value)}
+                    type="text"
+                    placeholder="Username"
+                />
+
+                <input
+                    className="register__input"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    placeholder="Email"
+                />
+
+                <input
+                    className="register__input"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    type="password"
+                    placeholder="Password"
+                />
+
+                <input
+                    type="submit"
+                    className="register__btn"
+                    value="Create Account"
+                    onClick={handleRegistration}
+                />
+
+                <h3>
+                    Already have an account?{" "}
+                    <Link to="/">Sign In</Link>
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <Footer />
+
+</div>  
   )
 }
 

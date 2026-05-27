@@ -5,6 +5,7 @@ import { FaRegSave, FaRegLightbulb } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import './PlaygroundNav.css';
+import { FiArrowLeft } from 'react-icons/fi';
 
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -40,9 +41,6 @@ const PlaygroundNav = ({ title, setTitle, owner, isGuest, id, onSaveWhiteboard, 
         );
         if (response && response.status === 200) {
           toast.success('Workspace saved successfully!');
-          setTimeout(() => {
-            navigate('/mycodes');
-          }, 1000);
         }
       }
     } catch (error) {
@@ -56,7 +54,7 @@ const PlaygroundNav = ({ title, setTitle, owner, isGuest, id, onSaveWhiteboard, 
       <div className="home__icon__container">
         <p>
           <Link to={isGuest ? '/home' : '/mycodes'} className="home__link">
-            ⚙️
+            <FiArrowLeft />
           </Link>
         </p>
           <div className="details__container">
@@ -71,10 +69,10 @@ const PlaygroundNav = ({ title, setTitle, owner, isGuest, id, onSaveWhiteboard, 
           </div>
         {!isGuest && (
           <>
-            <button onClick={onOpenBrainstorm} className="colored__btn">
+            <button title='Brainstorm' onClick={onOpenBrainstorm} className="colored__btn">
               <FaRegLightbulb />
             </button>
-            <button onClick={saveWorkspace} className="colored__btn">
+            <button title='Save Workspace' onClick={saveWorkspace} className="colored__btn">
               <FaRegSave />
             </button>
           </>

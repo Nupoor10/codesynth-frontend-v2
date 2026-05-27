@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast"
 import { useAuthContext } from '../../hooks/useAuthContext';
+import { FiTrash2, FiArrowRight } from "react-icons/fi";
 import "./CodeContainer.css";
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -40,10 +41,23 @@ const CodeContainer = ({title, id, time}) => {
             <p>{title}</p>
             <p>🗓️{time?.slice(0, 10)}</p>
         </div>
-        <div>
-            <p className='code__container__btn' onClick={deleteCode}>🗑️</p>
-            <p className='code__container__btn' onClick={navigateToPlayground}>➡️</p>
-        </div>
+        <div className="code__actions">
+
+    <button
+        className="code__container__btn"
+        onClick={deleteCode}
+    >
+        <FiTrash2 />
+    </button>
+
+    <button
+        className="code__container__btn"
+        onClick={navigateToPlayground}
+    >
+        <FiArrowRight />
+    </button>
+
+</div>
     </div>
   )
 }

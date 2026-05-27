@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import './RoomCard.css'
 import { useAuthContext } from '../../hooks/useAuthContext'
+import { FiCode, FiLogOut } from "react-icons/fi";
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
 const RoomCard = ({roomId, number, isAdmin, code, participants}) => {
@@ -38,16 +39,47 @@ const RoomCard = ({roomId, number, isAdmin, code, participants}) => {
   }
 
   return (
-    <div className='single__room__container'>
-      <div>
-        <h1>Collab Room {number}</h1>
-        <p>No. of participants: {participants}</p>
-      </div>
-      <div>
-        <button className='view__code__btn' onClick={() => {navigate(`/collab/${code}`, { state: { roomId : roomId } })}}>GO TO CODE</button>
-        <button className='view__code__btn' onClick={handleLeaveOrDelete}>{isAdmin ? "Delete" : "Leave"}</button>
-      </div>
+    <div className="single__room__container">
+
+    <div className="room__details">
+
+        <div className="room__badge">
+            Room {number}
+        </div>
+
+        <h3>Collaborative Workspace</h3>
+
+        <p>
+            {participants} participant{participants !== 1 ? "s" : ""}
+        </p>
+
     </div>
+
+    <div className="room__actions">
+
+        <button
+            className="room__action__btn primary"
+            onClick={() => {
+                navigate(`/collab/${code}`, {
+                    state: { roomId: roomId }
+                });
+            }}
+        >
+            <FiCode />
+            Open Workspace
+        </button>
+
+        <button
+            className="room__action__btn danger"
+            onClick={handleLeaveOrDelete}
+        >
+            <FiLogOut />
+            {isAdmin ? "Delete" : "Leave"}
+        </button>
+
+    </div>
+
+</div>
   )
 }
 

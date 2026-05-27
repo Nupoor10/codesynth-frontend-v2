@@ -96,7 +96,7 @@ const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisc
       toast.error(error?.message);
     }
   };
-  
+
   const copyIDToClipboard = () => {
     // Pulls roomId property, falls back safely to document identity key if empty
     const accurateIdToShare = roomId || id;
@@ -128,26 +128,21 @@ const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisc
             />
             <p>{window.innerWidth < 768 ? owner?.substring(0, 10) + "..." : owner}</p>
         </div>
-        <button onClick={saveCode} className="colored__btn">
-            <FaRegSave />
-        </button>
       </div>
       <div className='playground__controls__container'>
-          <button className='colored__btn' onClick={() => onOpenBrainstorm?.()}><FaRegLightbulb /></button>
-          <button className='colored__btn' onClick={copyIDToClipboard}>Copy ID</button>
-          <button className='colored__btn' onClick={handleLeave}>Leave Room</button>
-          <button className='colored__btn' onClick={() => openModal()}><FaUsers /></button>
-        </div>
-        <div className="playground__controls__container__mobile">
-          <select value={activeMenu} onChange={handleSelectChange}>
-            <option disabled hidden value="settings">
-              Settings
-            </option>
-            <option value="users">Users 🧑🏼‍🦰</option>
-            <option value="brainstorm">Brainstorm Board 💡</option>
-            <option value="copyid">Copy ID 📜</option>
-            <option value="exit">Leave Room</option>
-          </select>
+          <button onClick={saveCode} title="Save Workspace" className="colored__btn"><FaRegSave /></button>
+          <button className='colored__btn' onClick={() => onOpenBrainstorm?.()} title="Brainstorm">
+            <FaRegLightbulb />
+          </button>
+          <button className='colored__btn colored__btn__long' onClick={copyIDToClipboard} title="Copy Room ID">
+            Copy ID
+          </button>
+          <button className='colored__btn colored__btn__long' onClick={handleLeave} title="Leave Room">
+            Leave Room
+          </button>
+          <button className='colored__btn' onClick={() => openModal()} title="View Participants">
+            <FaUsers />
+          </button>
         </div>
       <Modal
         isOpen={modalIsOpen}
