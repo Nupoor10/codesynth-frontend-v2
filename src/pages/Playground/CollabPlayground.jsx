@@ -82,6 +82,33 @@ const CollabPlayground = () => {
       attachYTextObserver(file.id, yText);
     });
 
+    // 💡 FIX: Track deep modifications inside the shared map container across the wire
+    yFileContentsRef.current.observeDeep((events) => {
+      console.debug('[yjs-sync] Global map background modification heard');
+      
+      events.forEach((event) => {
+        if (event.target instanceof Y.Text) {
+          // Identify which file key matches this deep change stream
+          for (const [fileId, yText] of yFileContentsRef.current.entries()) {
+            if (yText === event.target) {
+              const currentTextContent = yText.toString();
+
+              // Update the mutable ref array directly so the fallback compiler catches it
+              if (filesRef.current) {
+                filesRef.current = filesRef.current.map(f => 
+                  f.id === fileId ? { ...f, content: currentTextContent } : f
+                );
+              }
+              break;
+            }
+          }
+        }
+      });
+
+      // Instantly flag a re-build for the iframe preview layer
+      schedulePreviewRebuild();
+    });
+
     yProviderRef.current.on('sync', (isSynced) => {
       console.debug('[yjs] provider sync', { room: canonicalRoomId, isSynced, time: Date.now() });
       if (isSynced) rebuildPreview();
@@ -156,6 +183,13 @@ const CollabPlayground = () => {
     socketRef.current.on(ACTIONS.FILE_RENAME, ({ fileId, name }) => {
       console.debug('[socket] FILE_RENAME received', { fileId, name });
       setFiles(prev => prev.map(f => f.id === fileId ? { ...f, name } : f));
+    });
+
+    socketRef.current.on('WORKSPACE_SAVED_BROADCAST', ({ username }) => {
+      console.debug('[socket] WORKSPACE_SAVED_BROADCAST received from', username);
+      if (user?.name !== username) {
+        toast.success(`Workspace has been successfully saved by ${username}!`);
+      }
     });
   };
 
@@ -273,12 +307,12 @@ const CollabPlayground = () => {
   };
 
   const rebuildPreview = () => {
-    // ALWAYS pull directly from filesRef instead of stale enclosed variables
     const source = filesRef.current;
     if (!source || source.length === 0) return;
 
     console.debug('[preview] rebuildPreview start', { time: Date.now(), files: source.map(f => f.id) });
 
+    // 💡 FIX: Always prioritize pulling current text straight from Yjs Shared Map if active
     const contentFiles = source.map((f) => {
       const yText = yFileContentsRef.current?.get(f.id);
       return { ...f, content: yText ? yText.toString() : f.content };
@@ -305,19 +339,23 @@ const CollabPlayground = () => {
     }
     const cb = () => {
       const content = yText.toString();
-      console.debug('[ytext] change', { fileId, time: Date.now(), len: content.length });
+      console.debug('[ytext] change detected via Yjs', { fileId, len: content.length });
 
-      // Keep local files state in sync so UI and preview rebuilds read fresh content
-      setFiles(prev => prev.map(f => f.id === fileId ? { ...f, content } : f));
+      // 💡 FIX: Update our mutable ref instantly so preview engine reads true current state
+      // This safely bypasses calling 'setFiles' on every single keystroke
+      if (filesRef.current) {
+        filesRef.current = filesRef.current.map(f => 
+          f.id === fileId ? { ...f, content } : f
+        );
+      }
+
+      // Schedule debounced database saves and iframe re-compilations safely
       scheduleSave(fileId, content);
-
-      // Always schedule preview rebuild on yText changes (handles remote edits via MonacoBinding)
-      console.debug('[preview] scheduling rebuild on ytext change', { fileId });
       schedulePreviewRebuild();
     };
     yText.observe(cb);
     yTextObserversRef.current.set(fileId, cb);
-    console.debug('[ytext] observer attached', { fileId });
+    console.debug('[ytext] observer attached cleanly', { fileId });
   };
 
   const initializeYjs = (loadedFiles, roomId) => {
@@ -391,22 +429,23 @@ const CollabPlayground = () => {
   };
 
   const handleUpdateFile = async (fileId, content) => {
-    setFiles(prev => prev.map(f => f.id === fileId ? { ...f, content } : f));
-
-    // Only update yText directly if NOT using MonacoBinding (MonacoBinding syncs automatically)
-    const isUsingMonacoBinding = isRoom && yFileContentsRef.current?.has(fileId);
-    if (!isUsingMonacoBinding && yFileContentsRef.current && yFileContentsRef.current.has(fileId)) {
-      const yText = yFileContentsRef.current.get(fileId);
-      console.debug('[file] local update to yText', { fileId, existingLen: yText.length, newLen: (content || '').length });
-      if (yText.toString() !== content) {
-        try {
-          yText.delete(0, yText.length);
-          yText.insert(0, content || '');
-        } catch (e) {
-          console.error('[file] failed to update yText', e);
-        }
-      }
+    // 💡 FIX: Update mutable ref instantly so preview engine reads true current state
+    if (filesRef.current) {
+      filesRef.current = filesRef.current.map(f => 
+        f.id === fileId ? { ...f, content } : f
+      );
     }
+
+    // Only update the React state array if we are NOT in a collaborative room.
+    // In a room, Yjs handles the editor text updates directly. Overwriting React state freezes the cursor.
+    const isUsingMonacoBinding = isRoom && yFileContentsRef.current?.has(fileId);
+    if (!isUsingMonacoBinding) {
+      setFiles(prev => prev.map(f => f.id === fileId ? { ...f, content } : f));
+    } else {
+      // If we are in a room, just schedule the database background save and live preview rebuild
+      scheduleSave(fileId, content);
+    }
+
     console.debug('[file] schedule preview rebuild after update', { fileId });
     schedulePreviewRebuild();
   };
@@ -416,7 +455,19 @@ const CollabPlayground = () => {
       const config = { headers: { Authorization: user?.accessToken } };
       const response = await axios.put(`${apiURL}/codes/${id}/files/${fileId}`, { name: newName }, config);
       if (response.status === 200) {
-        setFiles(prev => prev.map(f => f.id === fileId ? { ...f, name: newName } : f));
+        
+        // Extract new extension from the updated name if applicable
+        const extension = newName.split('.').pop();
+
+        // 💡 FIX: Update mutable ref instantly so editor and preview use fresh metadata
+        if (filesRef.current) {
+          filesRef.current = filesRef.current.map(f => 
+            f.id === fileId ? { ...f, name: newName, extension: extension || f.extension } : f
+          );
+        }
+
+        setFiles(prev => prev.map(f => f.id === fileId ? { ...f, name: newName, extension: extension || f.extension } : f));
+        
         const activeRoomId = canonicalRoomId || location?.state?.roomId || id;
         if (socketRef.current && socketRef.current.connected) {
           socketRef.current.emit(ACTIONS.FILE_RENAME, { fileId, name: newName, room: activeRoomId });
@@ -477,6 +528,7 @@ const CollabPlayground = () => {
           clients={activeClients} 
           onSaveWhiteboard={() => whiteboardSaveRef.current?.()} 
           onOpenBrainstorm={openBrainstorm} 
+          socket={socketRef.current} // 💡 FIX: Pass socket down to handle notification broadcasts
         />
         <button onClick={() => setCollapsed(!collapsed)} className='collapse-btn'>
           {collapsed ? <IoIosArrowDropdown /> : <IoIosArrowDropup />}

@@ -10,7 +10,7 @@ import './PlaygroundNav.css';
 
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
-const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisconnect, clients, onSaveWhiteboard, onOpenBrainstorm }) => {
+const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisconnect, clients, onSaveWhiteboard, onOpenBrainstorm, socket }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState('settings');
   const [participants, setParticipants] = useState([]);
@@ -80,6 +80,15 @@ const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisc
         );
         if (response && response.status === 200) {
           toast.success('Updated successfully!');
+
+          // 💡 FIX: Broadcast save notification to all other users in the socket room
+          const activeRoomId = roomId || id;
+          if (socket && socket.connected && activeRoomId) {
+            socket.emit('WORKSPACE_SAVED', { 
+              room: activeRoomId, 
+              username: user?.name 
+            });
+          }
         }
       }
     } catch (error) {
@@ -87,7 +96,7 @@ const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisc
       toast.error(error?.message);
     }
   };
-
+  
   const copyIDToClipboard = () => {
     // Pulls roomId property, falls back safely to document identity key if empty
     const accurateIdToShare = roomId || id;

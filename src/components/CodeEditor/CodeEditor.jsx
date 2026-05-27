@@ -36,97 +36,116 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
   const monacoRef = useRef(null);
   const modelMapRef = useRef(new Map());
   const bindingMapRef = useRef(new Map());
-  const ignoreChangeRef = useRef(false); // Prevents infinite cursor echoing loops
+  const ignoreChangeRef = useRef(false);
+
+  // Helper utility resolving identifier fallback variations (id vs _id)
+  const getFileId = (f) => f?.id || f?._id;
 
   const createModelForFile = (currentFile, yText) => {
-    console.debug('[editor] createModelForFile', { fileId: currentFile?.id, hasYText: !!yText });
+    const fileId = getFileId(currentFile);
+    console.debug('[editor] createModelForFile', { fileId, hasYText: !!yText });
+    
     const language = getLanguageFromExtension(currentFile.extension);
-    const uri = monacoRef.current.Uri.parse(`inmemory://model/${currentFile.id}.${currentFile.extension}`);
-    const content = yText ? yText.toString() : (currentFile.content || '');
-    const model = monacoRef.current.editor.createModel(content, language, uri);
-    console.debug('[editor] model created', { fileId: currentFile?.id, modelId: model?.id, modelDisposed: model?.isDisposed });
+    const uri = monacoRef.current.Uri.parse(`inmemory://model/${fileId}.${currentFile.extension}`);
+    
+    // 💡 FIX: If a model already exists at this URI, reuse it instead of throwing a conflict or blanking out
+    let model = monacoRef.current.editor.getModel(uri);
+    if (model) {
+      return model;
+    }
+
+    // Prioritize text from Yjs if it exists, otherwise fall back to database string content
+    const content = yText && yText.length > 0 ? yText.toString() : (currentFile.content || '');
+    model = monacoRef.current.editor.createModel(content, language, uri);
+    
     return model;
   };
 
   const attachEditorToFile = (currentFile) => {
     if (!editorRef.current || !monacoRef.current || !currentFile) return;
 
-    const yText = yFileContents?.get(currentFile.id);
-    let model = modelMapRef.current.get(currentFile.id);
+    const fileId = getFileId(currentFile);
+    const yText = yFileContents?.get(fileId);
+    let model = modelMapRef.current.get(fileId);
 
     if (model?.isDisposed) {
       try { model.dispose(); } catch (e) {}
-      modelMapRef.current.delete(currentFile.id);
+      modelMapRef.current.delete(fileId);
       model = null;
     }
 
     if (!model) {
       model = createModelForFile(currentFile, yText);
-      modelMapRef.current.set(currentFile.id, model);
+      modelMapRef.current.set(fileId, model);
     }
 
-    console.debug('[editor] setting model on editor', { fileId: currentFile.id });
+    console.debug('[editor] setting model on editor', { fileId });
     editorRef.current.setModel(model);
 
     // Bind Yjs room collaborative text instance to the Monaco model safely
-    if (isRoom && yProvider && yText && !bindingMapRef.current.has(currentFile.id)) {
+    if (isRoom && yProvider && yText) {
       try {
-        console.debug('[editor] creating MonacoBinding', { fileId: currentFile.id });
+        // 💡 FIX: Clear out any existing stale binding for this file 
+        // to ensure the new active editor model attaches to the Yjs stream cleanly
+        const existingBinding = bindingMapRef.current.get(fileId);
+        if (existingBinding) {
+          try { existingBinding.destroy(); } catch (e) {}
+          bindingMapRef.current.delete(fileId);
+        }
+
+        console.debug('[editor] Creating fresh MonacoBinding for tab switch', { fileId });
+        
+        // Map the current editor instance directly to the newly swapped model
         const binding = new MonacoBinding(yText, model, new Set([editorRef.current]), yProvider.awareness);
-        bindingMapRef.current.set(currentFile.id, binding);
-        console.debug('[editor] MonacoBinding created', { fileId: currentFile.id });
+        bindingMapRef.current.set(fileId, binding);
+        
+        console.debug('[editor] MonacoBinding successfully attached to swapped tab', { fileId });
       } catch (e) {
-        console.error('[editor] failed to create MonacoBinding', e);
+        console.error('[editor] failed to create MonacoBinding on tab switch', e);
       }
-    } else {
-      console.debug('[editor] skipping binding creation', { fileId: currentFile.id, isRoom, hasYProvider: !!yProvider, hasYText: !!yText, hasBinding: bindingMapRef.current.has(currentFile.id) });
     }
   };
 
   const handleEditorMount = (editor, monaco) => {
-    console.debug('[editor] onMount', { fileId: file?.id });
     editorRef.current = editor;
     monacoRef.current = monaco;
     attachEditorToFile(file);
   };
 
+  // Main attachment loop triggers handles file selection changes
   useEffect(() => {
-    if (editorRef.current && monacoRef.current && file?.id) {
+    if (editorRef.current && monacoRef.current && file) {
       attachEditorToFile(file);
     }
-  }, [file?.id, isRoom, yProvider, yFileContents]);
+  }, [file, isRoom, yProvider, yFileContents]);
 
-  // If the Yjs text for this file appears after the editor mounted (race condition),
-  // retry attaching the editor -> model -> MonacoBinding until it's available.
+  // Race condition guard: Checks if yText initialized late
   useEffect(() => {
-    if (!file?.id || !isRoom || !yProvider || !editorRef.current || !monacoRef.current) return;
+    const fileId = getFileId(file);
+    if (!fileId || !isRoom || !yProvider || !yFileContents || !editorRef.current || !monacoRef.current) return;
 
     let cancelled = false;
     let timeoutId = null;
 
     const tryAttach = () => {
       if (cancelled) return;
-      const yText = yFileContents?.get?.(file.id);
-      const hasBinding = bindingMapRef.current.has(file.id);
-      console.debug('[editor] tryAttach', { fileId: file.id, hasYText: !!yText, hasBinding });
       
-      // If binding already exists, stop retrying
-      if (hasBinding) {
-        console.debug('[editor] binding already exists, stopping retry', { fileId: file.id });
-        return;
-      }
+      const yText = yFileContents.get(fileId);
+      const hasBinding = bindingMapRef.current.has(fileId);
+      
+      if (hasBinding) return;
       
       if (yText) {
         try {
           attachEditorToFile(file);
-          console.debug('[editor] tryAttach - attached', { fileId: file.id });
         } catch (e) {
           console.error('[editor] tryAttach error', e);
         }
         return;
       }
-      // Retry shortly until the Y.Text appears or component unmounts
-      timeoutId = setTimeout(tryAttach, 150);
+      
+      // Keep polling until shared text arrives or tab unmounts
+      timeoutId = setTimeout(tryAttach, 100);
     };
 
     tryAttach();
@@ -135,15 +154,16 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
       cancelled = true; 
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [file?.id, isRoom, yProvider]);
+  }, [file, isRoom, yProvider, yFileContents]);
 
-  // Clean up all shared bindings and models strictly on unmount
+  // Memory cleanup hook handles clean unmount lifecycles
   useEffect(() => {
     return () => {
       bindingMapRef.current.forEach((binding) => {
         try { binding.destroy(); } catch (e) {}
       });
       bindingMapRef.current.clear();
+      
       modelMapRef.current.forEach((model) => {
         try { model.dispose(); } catch (e) {}
       });
@@ -151,18 +171,44 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
     };
   }, []);
 
-  // Propagate text changes back to state and trigger preview rebuild
-  const handleEditorChange = (value) => {
-    console.debug('[editor] onChange fired', { fileId: file?.id, len: (value||'').length });
-    if (ignoreChangeRef.current) return;
-    if (!file || !onFileChange) return;
+  // 💡 FIX: Watch for file renames and clean up the old model/binding instantly
+  useEffect(() => {
+    if (!file) return;
+    const fileId = getFileId(file);
 
-    const hasRoomBinding = isRoom && yProvider && yFileContents?.has(file.id);
-    console.debug('[editor] hasRoomBinding?', { fileId: file?.id, hasRoomBinding });
-    
-    // Always call onFileChange to trigger preview rebuild and state updates
-    // When hasRoomBinding is true, onFileChange will skip yText updates since MonacoBinding handles sync
-    onFileChange(file.id, value);
+    // Look through our active models to see if the filename/extension changed
+    const currentModel = modelMapRef.current.get(fileId);
+    if (currentModel) {
+      const currentUri = currentModel.uri.toString();
+      const expectedUri = `inmemory://model/${fileId}.${file.extension}`;
+
+      // If the current URI doesn't match the new extension/name, purge it
+      if (currentUri !== expectedUri) {
+        console.debug('[editor] File rename detected, purging old model and binding', { fileId });
+
+        // 1. Destroy old Yjs binding
+        const oldBinding = bindingMapRef.current.get(fileId);
+        if (oldBinding) {
+          try { oldBinding.destroy(); } catch (e) {}
+          bindingMapRef.current.delete(fileId);
+        }
+
+        // 2. Dispose of old Monaco model
+        try { currentModel.dispose(); } catch (e) {}
+        modelMapRef.current.delete(fileId);
+
+        // 3. Force re-attach with new name
+        if (editorRef.current && monacoRef.current) {
+          attachEditorToFile(file);
+        }
+      }
+    }
+  }, [file?.name, file?.extension]); // Triggers instantly when name or extension updates
+
+  const handleEditorChange = (value) => {
+    if (ignoreChangeRef.current || !file || !onFileChange) return;
+    const fileId = getFileId(file);
+    onFileChange(fileId, value);
   };
 
   if (!file) {
