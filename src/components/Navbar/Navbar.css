@@ -132,10 +132,13 @@
   display: flex;
 
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 10px;
 
-  width: 52px;
+  padding: 0 16px;
   height: 52px;
+  min-width: 170px;
+  max-width: 260px;
 
   border-radius: 16px;
 
@@ -146,6 +149,37 @@
   transition:
     background 0.25s ease,
     border 0.25s ease;
+}
+
+.dashboard__header__profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+
+  color: inherit;
+  cursor: pointer;
+}
+
+.dashboard__header__icons {
+  flex-shrink: 0;
+  font-size: 1.75rem;
+  color: #c4b5fd;
+}
+
+.navbar__username {
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
 }
 
 .dashboard__header__icons__container:hover {

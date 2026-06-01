@@ -5,6 +5,8 @@ import { FaUserCircle } from "react-icons/fa";
 import { FiHome, FiCodepen } from "react-icons/fi";
 import { FaHandshakeSimple } from "react-icons/fa6";
 
+import { useAuthContext } from "../../hooks/useAuthContext";
+
 import "./Navbar.css";
 
 const Navbar = ({
@@ -16,6 +18,7 @@ const Navbar = ({
 
     const navigate = useNavigate();
     const location = useLocation();
+    const { user } = useAuthContext();
 
     return (
 
@@ -94,10 +97,19 @@ const Navbar = ({
 
                 <div className="dashboard__header__icons__container">
 
-                    <FaUserCircle
-                        className="dashboard__header__icons"
+                    <button
+                        type="button"
+                        className="dashboard__header__profile"
                         onClick={toggleDropdown}
-                    />
+                    >
+                        <FaUserCircle
+                            className="dashboard__header__icons"
+                        />
+
+                        <span className="navbar__username">
+                            {user?.name || "Guest"}
+                        </span>
+                    </button>
 
                     <div
                         style={{

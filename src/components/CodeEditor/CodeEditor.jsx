@@ -37,6 +37,7 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
   const modelMapRef = useRef(new Map());
   const bindingMapRef = useRef(new Map());
   const ignoreChangeRef = useRef(false);
+  const activeFileIdRef = useRef(null);
 
   // Helper utility resolving identifier fallback variations (id vs _id)
   const getFileId = (f) => f?.id || f?._id;
@@ -79,14 +80,33 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
       modelMapRef.current.set(fileId, model);
     }
 
-    console.debug('[editor] setting model on editor', { fileId });
-    editorRef.current.setModel(model);
+    const currentEditorModel = editorRef.current.getModel();
+    const shouldSetModel = !currentEditorModel || currentEditorModel !== model;
+    const existingBinding = bindingMapRef.current.get(fileId);
+    const shouldAttachBinding = isRoom && yProvider && yText && !existingBinding;
+
+    if (!shouldSetModel && !shouldAttachBinding) {
+      activeFileIdRef.current = fileId;
+      return;
+    }
+
+    // Clean up stale bindings from previously active files so only the current file is live.
+    bindingMapRef.current.forEach((binding, bindingFileId) => {
+      if (bindingFileId !== fileId) {
+        try { binding.destroy(); } catch (e) {}
+        bindingMapRef.current.delete(bindingFileId);
+      }
+    });
+
+    if (shouldSetModel) {
+      console.debug('[editor] setting model on editor', { fileId });
+      editorRef.current.setModel(model);
+    }
+    activeFileIdRef.current = fileId;
 
     // Bind Yjs room collaborative text instance to the Monaco model safely
     if (isRoom && yProvider && yText) {
       try {
-        // 💡 FIX: Clear out any existing stale binding for this file 
-        // to ensure the new active editor model attaches to the Yjs stream cleanly
         const existingBinding = bindingMapRef.current.get(fileId);
         if (existingBinding) {
           try { existingBinding.destroy(); } catch (e) {}
@@ -95,7 +115,6 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
 
         console.debug('[editor] Creating fresh MonacoBinding for tab switch', { fileId });
         
-        // Map the current editor instance directly to the newly swapped model
         const binding = new MonacoBinding(yText, model, new Set([editorRef.current]), yProvider.awareness);
         bindingMapRef.current.set(fileId, binding);
         
@@ -115,9 +134,12 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
   // Main attachment loop triggers handles file selection changes
   useEffect(() => {
     if (editorRef.current && monacoRef.current && file) {
-      attachEditorToFile(file);
+      const fileId = getFileId(file);
+      if (activeFileIdRef.current !== fileId) {
+        attachEditorToFile(file);
+      }
     }
-  }, [file, isRoom, yProvider, yFileContents]);
+  }, [file?.id, file?.extension, isRoom, yProvider, yFileContents]);
 
   // Race condition guard: Checks if yText initialized late
   useEffect(() => {

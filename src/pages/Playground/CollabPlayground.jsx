@@ -76,14 +76,19 @@ const CollabPlayground = () => {
     console.debug('[yjs] initialized yFileContents map', { room: canonicalRoomId, keys: Array.from(yFileContentsRef.current.keys()) });
 
     loadedFiles.forEach((file) => {
-      if (!yFileContentsRef.current.has(file.id)) {
-        const yText = new Y.Text();
-        yText.insert(0, file.content || '');
-        yFileContentsRef.current.set(file.id, yText);
+      const fileId = file.id || file._id;
+      let yText = yFileContentsRef.current.get(fileId);
+
+      if (!yText) {
+        yText = new Y.Text();
+        if (file.content) {
+          yText.insert(0, file.content);
+        }
+        yFileContentsRef.current.set(fileId, yText);
       }
-      const yText = yFileContentsRef.current.get(file.id);
-      console.debug('[yjs] attaching yText observer', { fileId: file.id });
-      attachYTextObserver(file.id, yText);
+
+      console.debug('[yjs] attaching yText observer', { fileId });
+      attachYTextObserver(fileId, yText);
     });
 
     // 💡 FIX: Track deep modifications inside the shared map container across the wire

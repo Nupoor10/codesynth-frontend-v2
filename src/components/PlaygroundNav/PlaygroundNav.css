@@ -101,6 +101,10 @@
   color: #ede9fe;
 }
 
+.home__link, .home__link:visited, .home__link:active, .home__link:hover {
+  color: #c4b5fd;
+}
+
 @media screen and (max-width: 768px) {
 
   .playground__title {

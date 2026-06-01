@@ -31,6 +31,7 @@ const Playground = () => {
   const [isGuest, setIsGuest] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const whiteboardSaveRef = useRef(null);
+  const saveTimeoutsRef = useRef(new Map());
 
   useEffect(() => {
     const fetchCode = async() => {
@@ -88,21 +89,38 @@ const Playground = () => {
     }
   };
 
-  const handleUpdateFile = async (fileId, content) => {
+  const persistFileContent = async (fileId, content) => {
     try {
       const config = {
         headers: {
           Authorization: user?.accessToken
         }
       };
-      const response = await axios.put(`${apiURL}/codes/${id}/files/${fileId}`, { content }, config);
-      if (response.status === 200) {
-        setFiles(response.data.files);
-      }
+      await axios.put(`${apiURL}/codes/${id}/files/${fileId}`, { content }, config);
     } catch (error) {
       console.log(error);
-      toast.error('Failed to update file');
+      toast.error('Failed to save file');
     }
+  };
+
+  const schedulePersistFileContent = (fileId, content) => {
+    if (!fileId) return;
+    const existingTimeout = saveTimeoutsRef.current.get(fileId);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+    }
+
+    const timeout = window.setTimeout(() => {
+      persistFileContent(fileId, content);
+      saveTimeoutsRef.current.delete(fileId);
+    }, 800);
+
+    saveTimeoutsRef.current.set(fileId, timeout);
+  };
+
+  const handleUpdateFile = (fileId, content) => {
+    setFiles((prev) => prev.map((file) => file.id === fileId ? { ...file, content } : file));
+    schedulePersistFileContent(fileId, content);
   };
 
   const handleRenameFile = async (fileId, newName) => {
