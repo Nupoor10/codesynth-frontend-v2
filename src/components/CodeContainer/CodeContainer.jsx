@@ -38,6 +38,7 @@ const CodeContainer = ({title, id, time}) => {
   return (
     <div className='single__code__container'>
         <div className='code__details__div'>
+            <div className='code__badge'>Personal Workspace</div>
             <p>{title}</p>
             <p>🗓️{time?.slice(0, 10)}</p>
         </div>

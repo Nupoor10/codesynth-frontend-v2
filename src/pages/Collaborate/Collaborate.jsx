@@ -9,6 +9,8 @@ import Footer from "../../components/Footer/Footer";
 import { FiArrowLeft, FiUsers, FiPlusCircle,  } from "react-icons/fi";
 import { FaHandshakeSimple } from "react-icons/fa6";
 import Navbar from '../../components/Navbar/Navbar';
+import Modal from '../../components/Modal/Modal';
+import { getRandomTitle } from '../../utils/titleGenerator';
 import "./Collaborate.css"
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -16,6 +18,9 @@ const apiURL = import.meta.env.VITE_BACKEND_URL;
 const Collaborate = () => {
     const [ userRooms, setUserRooms] = useState([]);
     const [newRoomId, setNewRoomId] = useState('');
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [newRoomTitle, setNewRoomTitle] = useState('');
+    const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const { user, dispatch } = useAuthContext();
@@ -29,6 +34,28 @@ const Collaborate = () => {
         dispatch({ type: "LOGOUT" });
         navigate("/");
       };
+
+    const openCreateModal = () => {
+      setNewRoomTitle('');
+      setIsCreateModalOpen(true);
+    };
+
+    const closeCreateModal = () => {
+      setIsCreateModalOpen(false);
+    };
+
+    const generateRandomTitle = () => {
+      setNewRoomTitle(getRandomTitle());
+    };
+
+    const handleCreateRoomSubmit = async () => {
+      if (!newRoomTitle.trim()) {
+        toast.error('Please enter a title or auto-generate one.');
+        return;
+      }
+
+      await handleRoomCreation(newRoomTitle.trim());
+    };
 
     useEffect(() => {
       const getAllRooms = async () => {
@@ -62,12 +89,12 @@ const Collaborate = () => {
 
     }, [user]);  
   
-    const handleCodeCreation = async (config) => {
+    const handleCodeCreation = async (title, config) => {
         try {
           const body = {
             // minimal create payload; backend will initialize a blank index.html
             isRoom: true,
-            title: 'Demo Container',
+            title: title || 'Demo Container',
           };
 
           const response = await axios.post(`${apiURL}/codes/create`, body, config);
@@ -82,7 +109,8 @@ const Collaborate = () => {
         }
       };
       
-    const handleRoomCreation = async () => {
+    const handleRoomCreation = async (title) => {
+        setIsCreatingRoom(true);
         try {
           if (user) {
             const config = {
@@ -91,18 +119,19 @@ const Collaborate = () => {
               },
             };
       
-            const codeId = await handleCodeCreation(config);
-      
+            const codeId = await handleCodeCreation(title, config);
+  
             if (codeId) {
-              const newUuid = uuid()
+              const newUuid = uuid();
               const body = {
                 roomId: newUuid,
                 codeId
               };
-      
+  
               const response = await axios.post(`${apiURL}/rooms/create`, body, config);
-      
+  
               if (response && response.status === 201 && response.data.newRoom) {
+                closeCreateModal();
                 navigate(`/collab/${codeId}`, { state: { roomId: newUuid } });
               }
             }
@@ -110,28 +139,30 @@ const Collaborate = () => {
         } catch (error) {
           console.error(error);
           toast.error(error?.message);
+        } finally {
+          setIsCreatingRoom(false);
         }
-      };      
+      };
 
-  const handleAddRoom = async() => {
-    try {
-      if(user && newRoomId) {
-        const config = {
-          headers: {
-            Authorization: user?.accessToken,
-          },
-        };
-        const response = await axios.put(`${apiURL}/rooms/add`, { roomID: newRoomId }, config);
+    const handleAddRoom = async() => {
+      try {
+        if(user && newRoomId) {
+          const config = {
+            headers: {
+              Authorization: user?.accessToken,
+            },
+          };
+          const response = await axios.put(`${apiURL}/rooms/add`, { roomID: newRoomId }, config);
           if( response && response.status === 200) {
             setNewRoomId('')
             toast.success("Room Added Successfully")
           }
+        }
+      } catch(error) {
+        console.log(error);
+        toast.error("Error in Joining Room")
       }
-    } catch(error) {
-      console.log(error);
-      toast.error("Error in Joining Room")
     }
-  }
   
   return (
     <div className="userrooms__page__wrapper">
@@ -181,13 +212,52 @@ const Collaborate = () => {
         </p>
 
         <button
-            onClick={handleRoomCreation}
+            onClick={openCreateModal}
             className="create__room__btn"
         >
             Create Room
         </button>
 
     </div>
+
+    <Modal isOpen={isCreateModalOpen} closeModal={closeCreateModal}>
+      <div className="userrooms__modal__content">
+        <div className="userrooms__modal__header">
+          <h2>New Room Title</h2>
+          <p>Type a title for the shared room, or auto-generate one.</p>
+        </div>
+
+        <label className="userrooms__modal__label" htmlFor="roomTitle">
+          Title
+        </label>
+        <input
+          id="roomTitle"
+          type="text"
+          className="userrooms__modal__input"
+          value={newRoomTitle}
+          onChange={(e) => setNewRoomTitle(e.target.value)}
+          placeholder="Enter a room title"
+        />
+
+        <div className="userrooms__modal__actions">
+          <button
+            type="button"
+            className="userrooms__modal__btn userrooms__modal__btn--secondary"
+            onClick={generateRandomTitle}
+          >
+            Auto-generate Title
+          </button>
+          <button
+            type="button"
+            className="userrooms__modal__btn"
+            onClick={handleCreateRoomSubmit}
+            disabled={isCreatingRoom}
+          >
+            {isCreatingRoom ? 'Creating…' : 'Create Room'}
+          </button>
+        </div>
+      </div>
+    </Modal>
 
     {/* JOIN ROOM */}
 
@@ -243,6 +313,7 @@ const Collaborate = () => {
                                 id={item._id}
                                 roomId={item.roomId}
                                 code={item.code}
+                                title={item.code?.title || item.title}
                                 admin={item.admin._id}
                                 isAdmin={item.admin.username === user.name}
                                 participants={(item.participants?.length || 0) + 1}

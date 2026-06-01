@@ -7,15 +7,20 @@ import CodeContainer from '../../components/CodeContainer/CodeContainer';
 import Footer from "../../components/Footer/Footer";
 import { FiArrowLeft, FiCode, FiCodepen, FiPlusCircle } from "react-icons/fi";
 import Navbar from '../../components/Navbar/Navbar';
+import Modal from '../../components/Modal/Modal';
+import { getRandomTitle } from '../../utils/titleGenerator';
 import "./UserCodes.css";
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
 const UserCodes = () => {
   const [ userCodes, setUserCodes] = useState([]);
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef(null);
-    const { dispatch, user } = useAuthContext();
-    const navigate = useNavigate();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newCodeTitle, setNewCodeTitle] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const { dispatch, user } = useAuthContext();
+  const navigate = useNavigate();
   
     const toggleDropdown = () => {
       setIsOpen(!isOpen);
@@ -25,6 +30,59 @@ const UserCodes = () => {
       dispatch({ type: "LOGOUT" });
       navigate("/");
     };
+
+  const openCreateModal = () => {
+    setNewCodeTitle("");
+    setIsCreateModalOpen(true);
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const generateRandomTitle = () => {
+    setNewCodeTitle(getRandomTitle());
+  };
+
+  const createCode = async (title) => {
+    if (!user) return;
+
+    setIsCreating(true);
+
+    try {
+      const config = {
+        headers: {
+          Authorization: user?.accessToken
+        }
+      };
+      const body = {
+        isRoom: false,
+        title: title || 'Demo Container'
+      };
+
+      const response = await axios.post(`${apiURL}/codes/create`, body, config);
+
+      if (response && response.status === 201 && response.data.codeDoc) {
+        const id = response.data.codeDoc._id;
+        closeCreateModal();
+        navigate(`/code/${id}`);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error?.message || 'Unable to create code.');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCreateSubmit = async () => {
+    if (!newCodeTitle.trim()) {
+      toast.error('Please enter a title or auto-generate one.');
+      return;
+    }
+
+    await createCode(newCodeTitle.trim());
+  };
 
   useEffect(() => {
     const getAllCodes = async () => {
@@ -56,31 +114,6 @@ const UserCodes = () => {
       clearInterval(interval);
     }
   }, [user]);  
-
-  const handleCodeCreation = async() => {
-    if (user) {
-      try {
-        const config = {
-          headers: {
-            Authorization: user?.accessToken
-          }
-        };
-        const body = {
-          // Create a minimal code project. Backend will add a blank index.html entry file.
-          isRoom: false,
-          title: 'Demo Container'
-        };
-        const response = await axios.post(`${apiURL}/codes/create`, body, config);
-        if (response && response.status === 201 && response.data.codeDoc) {
-          const id = response.data.codeDoc._id
-          navigate(`/code/${id}`);
-        }
-      } catch (error) {
-        console.log(error);
-        toast.error(error?.message);
-      }
-    }
-  }
 
   return (
     <div className="usercodes__page__wrapper">
@@ -129,7 +162,7 @@ const UserCodes = () => {
         </p>
 
         <button
-            onClick={handleCodeCreation}
+            onClick={openCreateModal}
             className="create__code__btn"
         >
             Create New Code
@@ -139,7 +172,44 @@ const UserCodes = () => {
 
 </div>
 
-        <div className="usercodes__page__content">
+        <Modal isOpen={isCreateModalOpen} closeModal={closeCreateModal}>
+          <div className="usercodes__modal__content">
+            <div className="usercodes__modal__header">
+              <h2>New Playground Title</h2>
+              <p>Type a name for your code project, or auto-generate one.</p>
+            </div>
+
+            <label className="usercodes__modal__label" htmlFor="codeTitle">
+              Title
+            </label>
+            <input
+              id="codeTitle"
+              type="text"
+              className="usercodes__modal__input"
+              value={newCodeTitle}
+              onChange={(e) => setNewCodeTitle(e.target.value)}
+              placeholder="Enter a title for your new code"
+            />
+
+            <div className="usercodes__modal__actions">
+              <button
+                type="button"
+                className="usercodes__modal__btn usercodes__modal__btn--secondary"
+                onClick={generateRandomTitle}
+              >
+                Auto-generate Title
+              </button>
+              <button
+                type="button"
+                className="usercodes__modal__btn"
+                onClick={handleCreateSubmit}
+                disabled={isCreating}
+              >
+                {isCreating ? 'Creating…' : 'Create Code'}
+              </button>
+            </div>
+          </div>
+        </Modal>
 
             {userCodes.length > 0 ? (
 
@@ -174,11 +244,9 @@ const UserCodes = () => {
 
         </div>
 
+        <Footer />
+
     </div>
-
-    <Footer />
-
-</div>
   )
 }
 

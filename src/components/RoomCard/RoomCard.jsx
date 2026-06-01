@@ -7,10 +7,11 @@ import { useAuthContext } from '../../hooks/useAuthContext'
 import { FiCode, FiLogOut } from "react-icons/fi";
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
-const RoomCard = ({roomId, number, isAdmin, code, participants}) => {
+const RoomCard = ({roomId, number, isAdmin, code, participants, title}) => {
 
   const { user } = useAuthContext();
   const navigate = useNavigate();
+  const roomTitle = title ?? (code && typeof code === 'object' ? code.title : undefined) ?? 'Untitled Room';
 
   const handleLeaveOrDelete = async() => {
     try {
@@ -44,10 +45,10 @@ const RoomCard = ({roomId, number, isAdmin, code, participants}) => {
     <div className="room__details">
 
         <div className="room__badge">
-            Room {number}
+            Collaborative Workspace
         </div>
 
-        <h3>Collaborative Workspace</h3>
+        <h3>{roomTitle}</h3>
 
         <p>
             {participants} participant{participants !== 1 ? "s" : ""}
