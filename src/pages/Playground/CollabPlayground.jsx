@@ -578,11 +578,13 @@ const CollabPlayground = () => {
 
         <div className="code-editor-pane">
 
-            <CodeEditor
-                file={activeFile}
-                onFileChange={handleUpdateFile}
-                isRoom={false}
-            />
+             <CodeEditor
+            file={activeFile}
+            onFileChange={handleUpdateFile}
+            isRoom={isRoom}
+            yProvider={yProviderRef.current}
+            yFileContents={yFileContentsRef.current}
+          />
 
         </div>
 
@@ -604,13 +606,13 @@ const CollabPlayground = () => {
     >
 
         <Whiteboard
-            isRoom={false}
-            yDoc={null}
-            id={id}
-            initialData={whiteboardData}
-            whiteboardSaveRef={whiteboardSaveRef}
-            apiURL={apiURL}
-            accessToken={user?.accessToken}
+            isRoom={isRoom}
+          yDoc={ydocRef.current}
+          id={id}
+          initialData={whiteboardData}
+          whiteboardSaveRef={whiteboardSaveRef}
+          apiURL={apiURL}
+          accessToken={user?.accessToken}
         />
 
     </DraggableResizableModal>
