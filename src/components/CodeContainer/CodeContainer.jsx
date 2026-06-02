@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast"
 import { useAuthContext } from '../../hooks/useAuthContext';
-import { FiTrash2, FiArrowRight } from "react-icons/fi";
+import { FiTrash2, FiArrowRight, FiCalendar } from "react-icons/fi";
 import "./CodeContainer.css";
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -40,7 +40,7 @@ const CodeContainer = ({title, id, time}) => {
         <div className='code__details__div'>
             <div className='code__badge'>Personal Workspace</div>
             <p>{title}</p>
-            <p>🗓️{time?.slice(0, 10)}</p>
+            <p><FiCalendar />{time?.slice(0, 10)}</p>
         </div>
         <div className="code__actions">
 

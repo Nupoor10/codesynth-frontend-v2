@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaRegSave, FaUsers, FaRegLightbulb } from 'react-icons/fa';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuthContext } from '../../hooks/useAuthContext';
 import Modal from '../Modal/Modal';
@@ -13,7 +13,6 @@ const apiURL = import.meta.env.VITE_BACKEND_URL;
 const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisconnect, clients, onSaveWhiteboard, onOpenBrainstorm, socket }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState('settings');
-  const [participants, setParticipants] = useState([]);
   const navigate = useNavigate();
 
   const { user } = useAuthContext();
@@ -39,28 +38,6 @@ const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisc
     }
   };
 
-  useEffect(() => {
-  const fetchRoom = async() => {
-    try {
-      if (user && roomId) {
-        const config = { headers: { Authorization: user?.accessToken } };
-        const response = await axios.get(`${apiURL}/rooms/users/${roomId}`, config);
-        
-        if (response && response.status === 200) {
-          setParticipants(response.data.allUsers);
-        }
-      }
-    } catch (error) {
-      console.error("Failed fetching standard participant rosters:", error);
-    }
-  };
-
-  // FIX: Reset local state back to empty whenever the room ID updates 
-  // This clears out old room lists instantly and forces a clean re-render
-  setParticipants([]); 
-  
-  fetchRoom();
-}, [user, roomId]);
 
   const saveCode = async () => {
     try {
@@ -147,7 +124,7 @@ const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisc
       <Modal
         isOpen={modalIsOpen}
         closeModal={closeModal}
-        children={<ParticipantList participants={participants} clients={clients} />}
+        children={<ParticipantList roomId={roomId} clients={clients} />}
       />
     </div>
   );

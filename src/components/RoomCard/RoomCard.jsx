@@ -12,6 +12,7 @@ const RoomCard = ({roomId, number, isAdmin, code, participants, title}) => {
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const roomTitle = title ?? (code && typeof code === 'object' ? code.title : undefined) ?? 'Untitled Room';
+  const codeId = code && typeof code === 'object' ? (code._id || code.id) : code;
 
   const handleLeaveOrDelete = async() => {
     try {
@@ -61,7 +62,13 @@ const RoomCard = ({roomId, number, isAdmin, code, participants, title}) => {
         <button
             className="room__action__btn primary"
             onClick={() => {
-                navigate(`/collab/${code}`, {
+                const targetCodeId = codeId || id || roomId;
+                if (!targetCodeId) {
+                  toast.error('Unable to open workspace. Missing code identifier.');
+                  return;
+                }
+
+                navigate(`/collab/${targetCodeId}`, {
                     state: { roomId: roomId }
                 });
             }}

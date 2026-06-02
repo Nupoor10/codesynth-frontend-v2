@@ -14,8 +14,9 @@ const Login = () => {
 
   const { dispatch } = useAuthContext();
 
-	const handleLogin = async () => {
-		try {
+    const handleLogin = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        try {
 			const response = await axios.post(`${apiURL}/users/login`, {
 				email,
 				password
@@ -53,7 +54,7 @@ const Login = () => {
 
         <div className="login__form">
 
-            <div className="login__form__inner">
+                <form className="login__form__inner" onSubmit={handleLogin}>
 
                 <input
                     className="login__input"
@@ -74,11 +75,11 @@ const Login = () => {
                 <button
                     type="submit"
                     className="login__btn"
-                    onClick={handleLogin}
                 >
                     Sign In
                 </button>
 
+                </form>
                 <h3>
                     Don’t have an account?{" "}
                     <Link to="/register">Create One</Link>
@@ -88,11 +89,9 @@ const Login = () => {
 
         </div>
 
+        <Footer />
+
     </div>
-
-    <Footer />
-
-</div>
   )
 }
 

@@ -48,7 +48,8 @@ const Collaborate = () => {
       setNewRoomTitle(getRandomTitle());
     };
 
-    const handleCreateRoomSubmit = async () => {
+    const handleCreateRoomSubmit = async (e) => {
+      if (e && e.preventDefault) e.preventDefault();
       if (!newRoomTitle.trim()) {
         toast.error('Please enter a title or auto-generate one.');
         return;
@@ -144,7 +145,8 @@ const Collaborate = () => {
         }
       };
 
-    const handleAddRoom = async() => {
+    const handleAddRoom = async (e) => {
+      if (e && e.preventDefault) e.preventDefault();
       try {
         if(user && newRoomId) {
           const config = {
@@ -227,35 +229,36 @@ const Collaborate = () => {
           <p>Type a title for the shared room, or auto-generate one.</p>
         </div>
 
-        <label className="userrooms__modal__label" htmlFor="roomTitle">
-          Title
-        </label>
-        <input
-          id="roomTitle"
-          type="text"
-          className="userrooms__modal__input"
-          value={newRoomTitle}
-          onChange={(e) => setNewRoomTitle(e.target.value)}
-          placeholder="Enter a room title"
-        />
+        <form onSubmit={handleCreateRoomSubmit}>
+          <label className="userrooms__modal__label" htmlFor="roomTitle">
+            Title
+          </label>
+          <input
+            id="roomTitle"
+            type="text"
+            className="userrooms__modal__input"
+            value={newRoomTitle}
+            onChange={(e) => setNewRoomTitle(e.target.value)}
+            placeholder="Enter a room title"
+          />
 
-        <div className="userrooms__modal__actions">
-          <button
-            type="button"
-            className="userrooms__modal__btn userrooms__modal__btn--secondary"
-            onClick={generateRandomTitle}
-          >
-            Auto-generate Title
-          </button>
-          <button
-            type="button"
-            className="userrooms__modal__btn"
-            onClick={handleCreateRoomSubmit}
-            disabled={isCreatingRoom}
-          >
-            {isCreatingRoom ? 'Creating…' : 'Create Room'}
-          </button>
-        </div>
+          <div className="userrooms__modal__actions">
+            <button
+              type="button"
+              className="userrooms__modal__btn userrooms__modal__btn--secondary"
+              onClick={generateRandomTitle}
+            >
+              Auto-generate Title
+            </button>
+            <button
+              type="submit"
+              className="userrooms__modal__btn"
+              disabled={isCreatingRoom}
+            >
+              {isCreatingRoom ? 'Creating…' : 'Create Room'}
+            </button>
+          </div>
+        </form>
       </div>
     </Modal>
 
@@ -275,25 +278,25 @@ const Collaborate = () => {
             Enter a room UUID to continue collaborating with your team.
         </p>
 
-        <div className="join__room__form">
+        <form className="join__room__form" onSubmit={handleAddRoom}>
 
-            <input
-                className="join__room__input"
-                value={newRoomId}
-                onChange={(e) => {
-                    setNewRoomId(e.target.value);
-                }}
-                placeholder="Enter Room UUID"
-            />
+          <input
+            className="join__room__input"
+            value={newRoomId}
+            onChange={(e) => {
+              setNewRoomId(e.target.value);
+            }}
+            placeholder="Enter Room UUID"
+          />
 
-            <button
-                onClick={handleAddRoom}
-                className="join__room__btn"
-            >
-                Join Room
-            </button>
+          <button
+            type="submit"
+            className="join__room__btn"
+          >
+            Join Room
+          </button>
 
-        </div>
+        </form>
 
     </div>
 

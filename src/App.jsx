@@ -1,6 +1,7 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { useAuthContext } from './hooks/useAuthContext';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import Home from './pages/Home/Home';
@@ -11,17 +12,30 @@ import CollabPlayground from './pages/Playground/CollabPlayground';
 import './App.css'
 
 function App() {
+  const { user } = useAuthContext();
+
+  const PrivateRoute = ({ children }) => {
+    return user ? children : <Navigate to="/" replace />;
+  };
+
+  const PublicRoute = ({ children }) => {
+    return user ? <Navigate to="/home" replace /> : children;
+  };
+
   return (
     <>
       <Router>
         <Routes>
-          <Route exact path='/' element={<Login />}/>
-          <Route path='/register' element={<Register />}/>
-          <Route path='/home' element={<Home />}/>
-          <Route path='/mycodes' element={<UserCodes />}/>
-          <Route path='/code/:id' element={<Playground />}/>
-          <Route path='/collab' element={<Collaborate />}/>
-          <Route path='/collab/:id' element={<CollabPlayground />}/>
+          <Route path='/' element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path='/register' element={<PublicRoute><Register /></PublicRoute>} />
+
+          <Route path='/home' element={<PrivateRoute><Home /></PrivateRoute>} />
+          <Route path='/mycodes' element={<PrivateRoute><UserCodes /></PrivateRoute>} />
+          <Route path='/code/:id' element={<PrivateRoute><Playground /></PrivateRoute>} />
+          <Route path='/collab' element={<PrivateRoute><Collaborate /></PrivateRoute>} />
+          <Route path='/collab/:id' element={<PrivateRoute><CollabPlayground /></PrivateRoute>} />
+
+          <Route path='*' element={<Navigate to={user ? '/home' : '/'} replace />} />
         </Routes>
         <Toaster
           position="top-center"

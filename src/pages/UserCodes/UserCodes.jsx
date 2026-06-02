@@ -75,7 +75,8 @@ const UserCodes = () => {
     }
   };
 
-  const handleCreateSubmit = async () => {
+  const handleCreateSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (!newCodeTitle.trim()) {
       toast.error('Please enter a title or auto-generate one.');
       return;
@@ -174,41 +175,42 @@ const UserCodes = () => {
 
         <Modal isOpen={isCreateModalOpen} closeModal={closeCreateModal}>
           <div className="usercodes__modal__content">
-            <div className="usercodes__modal__header">
-              <h2>New Playground Title</h2>
-              <p>Type a name for your code project, or auto-generate one.</p>
-            </div>
+              <div className="usercodes__modal__header">
+                <h2>New Playground Title</h2>
+                <p>Type a name for your code project, or auto-generate one.</p>
+              </div>
 
-            <label className="usercodes__modal__label" htmlFor="codeTitle">
-              Title
-            </label>
-            <input
-              id="codeTitle"
-              type="text"
-              className="usercodes__modal__input"
-              value={newCodeTitle}
-              onChange={(e) => setNewCodeTitle(e.target.value)}
-              placeholder="Enter a title for your new code"
-            />
+              <form onSubmit={handleCreateSubmit}>
+                <label className="usercodes__modal__label" htmlFor="codeTitle">
+                  Title
+                </label>
+                <input
+                  id="codeTitle"
+                  type="text"
+                  className="usercodes__modal__input"
+                  value={newCodeTitle}
+                  onChange={(e) => setNewCodeTitle(e.target.value)}
+                  placeholder="Enter a title for your new code"
+                />
 
-            <div className="usercodes__modal__actions">
-              <button
-                type="button"
-                className="usercodes__modal__btn usercodes__modal__btn--secondary"
-                onClick={generateRandomTitle}
-              >
-                Auto-generate Title
-              </button>
-              <button
-                type="button"
-                className="usercodes__modal__btn"
-                onClick={handleCreateSubmit}
-                disabled={isCreating}
-              >
-                {isCreating ? 'Creating…' : 'Create Code'}
-              </button>
+                <div className="usercodes__modal__actions">
+                  <button
+                    type="button"
+                    className="usercodes__modal__btn usercodes__modal__btn--secondary"
+                    onClick={generateRandomTitle}
+                  >
+                    Auto-generate Title
+                  </button>
+                  <button
+                    type="submit"
+                    className="usercodes__modal__btn"
+                    disabled={isCreating}
+                  >
+                    {isCreating ? 'Creating…' : 'Create Code'}
+                  </button>
+                </div>
+              </form>
             </div>
-          </div>
         </Modal>
 
             {userCodes.length > 0 ? (

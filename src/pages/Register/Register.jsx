@@ -12,7 +12,9 @@ const Register = () => {
   const [password, setPassword] = useState('')
   const navigate = useNavigate();
 
-  const handleRegistration = async () => {
+
+    const handleRegistration = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
 	try {
 		const response = await axios.post(`${apiURL}/users/register`, {
 			username,
@@ -45,7 +47,7 @@ const Register = () => {
 
         <div className="register__form">
 
-            <div className="register__form__inner">
+            <form className="register__form__inner" onSubmit={handleRegistration}>
 
                 <input
                     className="register__input"
@@ -71,13 +73,13 @@ const Register = () => {
                     placeholder="Password"
                 />
 
+
                 <input
                     type="submit"
                     className="register__btn"
                     value="Create Account"
-                    onClick={handleRegistration}
                 />
-
+                </form>
                 <h3>
                     Already have an account?{" "}
                     <Link to="/">Sign In</Link>
@@ -87,11 +89,9 @@ const Register = () => {
 
         </div>
 
+        <Footer />
+
     </div>
-
-    <Footer />
-
-</div>  
   )
 }
 

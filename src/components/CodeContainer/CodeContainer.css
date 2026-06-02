@@ -69,6 +69,9 @@
 }
 
 .code__details__div p:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.95rem;
 
   color: #94a3b8;
