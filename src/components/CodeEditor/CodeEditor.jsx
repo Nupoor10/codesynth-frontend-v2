@@ -208,6 +208,29 @@ const CodeEditor = ({
   }, [file, isRoom, yProvider, yFileContents]);
 
   useEffect(() => {
+    if (!file || !editorRef.current || !monacoRef.current) return;
+    const fileId = getFileId(file);
+    const model = modelMapRef.current.get(fileId);
+    if (!model) return;
+
+    const isBound = bindingMapRef.current.has(fileId);
+    if (isBound) return;
+
+    const yText = yFileContents?.get(fileId);
+    const expectedValue = yText ? yText.toString() : file.content || "";
+    const currentValue = model.getValue();
+
+    if (currentValue !== expectedValue) {
+      ignoreChangeRef.current = true;
+      try {
+        model.setValue(expectedValue);
+      } finally {
+        ignoreChangeRef.current = false;
+      }
+    }
+  }, [file?.content, file?.id, yFileContents]);
+
+  useEffect(() => {
     return () => {
       bindingMapRef.current.forEach((binding) => {
         try {
@@ -263,6 +286,12 @@ const CodeEditor = ({
   const handleEditorChange = (value) => {
     if (ignoreChangeRef.current || !file || !onFileChange) return;
     const fileId = getFileId(file);
+    
+    const isUsingMonacoBinding = isRoom && yProvider && yFileContents?.has(fileId);
+    if (isUsingMonacoBinding) {
+      return;
+    }
+    
     onFileChange(fileId, value);
   };
 

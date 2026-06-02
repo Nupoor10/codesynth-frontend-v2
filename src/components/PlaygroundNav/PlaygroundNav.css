@@ -1,42 +1,45 @@
 .playground__controls {
-  width: 100%;
-
+  width: auto;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-
+  gap: 12px;
+  flex-wrap: wrap;
   padding: 0;
-
   color: #f8fafc;
+  min-width: 0;
 }
 
 .home__icon__container {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .details__container {
   display: flex;
   flex-direction: column;
-
   gap: 4px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .playground__title {
   border: none;
   outline: none;
-
   background: transparent;
-
   color: #f8fafc;
-
   font-size: 1.1rem;
   font-weight: 700;
-
   padding: 0;
-
   font-family: inherit;
+  width: 100%;
+  min-width: 0;
+  max-width: 300px;
 }
 
 .playground__title:disabled {
@@ -56,6 +59,7 @@
 }
 
 .colored__btn {
+  flex-shrink: 0;
   width: 36px;
   height: 36px;
   cursor: pointer;

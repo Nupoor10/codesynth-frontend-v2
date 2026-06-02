@@ -32,6 +32,8 @@ const CollabPlayground = () => {
   const [activeClients, setActiveClients] = useState([]);
   const [previewSrcDoc, setPreviewSrcDoc] = useState("");
   const [canonicalRoomId, setCanonicalRoomId] = useState("");
+  const [yProvider, setYProvider] = useState(null);
+  const [yFileContents, setYFileContents] = useState(null);
 
   const { user } = useAuthContext();
   const { id } = useParams();
@@ -74,6 +76,8 @@ const CollabPlayground = () => {
       doc,
     );
     yFileContentsRef.current = doc.getMap("fileContents");
+    setYProvider(yProviderRef.current);
+    setYFileContents(yFileContentsRef.current);
     console.debug("[yjs] initialized yFileContents map", {
       room: canonicalRoomId,
       keys: Array.from(yFileContentsRef.current.keys()),
@@ -108,6 +112,9 @@ const CollabPlayground = () => {
                 filesRef.current = filesRef.current.map((f) =>
                   f.id === fileId ? { ...f, content: currentTextContent } : f,
                 );
+                try {
+                  setFiles([...filesRef.current]);
+                } catch (e) {}
               }
               break;
             }
@@ -232,6 +239,11 @@ const CollabPlayground = () => {
         yProviderRef.current.destroy();
       } catch (e) {}
       yProviderRef.current = null;
+      setYProvider(null);
+    }
+    if (yFileContentsRef.current) {
+      yFileContentsRef.current = null;
+      setYFileContents(null);
     }
     if (ydocRef.current) {
       try {
@@ -398,6 +410,9 @@ const CollabPlayground = () => {
         filesRef.current = filesRef.current.map((f) =>
           f.id === fileId ? { ...f, content } : f,
         );
+        try {
+          setFiles([...filesRef.current]);
+        } catch (e) {}
       }
 
       scheduleSave(fileId, content);
@@ -617,6 +632,13 @@ const CollabPlayground = () => {
           onOpenBrainstorm={openBrainstorm}
           socket={socketRef.current}
         />
+        <button
+          onClick={() => setIsPreviewMode(!isPreviewMode)}
+          className="preview-toggle-btn"
+          title={isPreviewMode ? "Exit Preview Mode" : "Enter Preview Mode"}
+        >
+          {isPreviewMode ? <FiMinimize2 /> : <FiMaximize2 />}
+        </button>
       </div>
       <div
         className={`playground__editor__container ${
@@ -639,8 +661,8 @@ const CollabPlayground = () => {
             file={activeFile}
             onFileChange={handleUpdateFile}
             isRoom={isRoom}
-            yProvider={yProviderRef.current}
-            yFileContents={yFileContentsRef.current}
+            yProvider={yProvider}
+            yFileContents={yFileContents}
           />
         </div>
 

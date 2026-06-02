@@ -3,7 +3,6 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-
   background:
     radial-gradient(
       circle at top left,
@@ -16,7 +15,6 @@
       transparent 30%
     ),
     #0b0f19;
-
   color: #ffffff;
   overflow-x: hidden;
 }
@@ -232,6 +230,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  margin-top: 15px;
   justify-content: flex-end;
 }
 

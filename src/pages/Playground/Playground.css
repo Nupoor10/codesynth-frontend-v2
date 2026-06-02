@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  height: 100vh;
   overflow: hidden;
   background:
     radial-gradient(
@@ -22,10 +21,12 @@
 }
 
 .playground__nav__wrapper {
-  height: 78px;
+  min-height: 78px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
+  gap: 12px;
   padding: 0 20px;
   background-color: #1e1e1e;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -35,6 +36,7 @@
 }
 
 .preview-toggle-btn {
+  flex-shrink: 0;
   width: 36px;
   height: 36px;
   margin-left: 12px;
@@ -66,7 +68,8 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 250px 1fr 1fr;
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: 1fr;
   position: relative;
   background: #0b0f19;
   overflow: hidden;
@@ -75,13 +78,24 @@
 .file-explorer-pane,
 .code-editor-pane,
 .preview-pane {
-  height: 100%;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
 
+.file-explorer-pane {
+  max-width: 320px;
+}
+
+.code-editor-pane,
+.preview-pane {
+  display: flex;
+  flex-direction: column;
+}
+
 .preview-pane iframe {
   min-height: 100%;
+  width: 100%;
 }
 
 .playground__editor__container.preview-mode {
@@ -120,9 +134,125 @@
   background: white;
 }
 
+@media screen and (max-width: 1200px) {
+  .playground__editor__container {
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
 @media screen and (max-width: 1024px) {
   .playground__editor__container {
-    grid-template-columns: 220px 1fr 1fr;
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: unset;
+    grid-auto-rows: unset;
+    min-height: 0;
+    overflow: hidden;
+    height: calc(100vh - 78px);
+  }
+
+  .file-explorer-pane {
+    display: block;
+    width: 100%;
+    flex: 0 0 100px;
+    max-height: 100px;
+    min-height: 100px;
+    overflow-y: auto;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .code-editor-pane {
+    flex: 3 1 0;
+    min-height: 0;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    max-height: unset;
+    overflow: hidden;
+  }
+
+  .preview-pane {
+    flex: 2 1 0;
+    min-height: 0;
+    border: none;
+    overflow: hidden;
+  }
+  
+  .playground__editor__container,
+  .file-explorer-pane,
+  .code-editor-pane,
+  .preview-pane {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .playground__editor__container {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+  }
+
+  .file-explorer-pane {
+    width: 100% !important;
+    flex: 0 0 80px !important;
+    max-height: 80px !important;
+    min-height: 80px !important;
+    overflow-y: auto !important;
+  }
+
+  .file-explorer {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .code-editor-pane {
+    flex: 3 1 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .preview-pane {
+    flex: 2 1 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .playground__editor__container {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: unset;
+    grid-auto-rows: unset;
+    min-height: 0;
+    overflow: hidden;
+    height: calc(100vh - 78px);
+  }
+
+  .file-explorer-pane {
+    display: block;
+    width: 100%;
+    flex: 0 0 90px;
+    max-height: 90px;
+    min-height: 90px;
+    overflow-y: auto;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .code-editor-pane {
+    flex: 3 1 0;
+    min-height: 0;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    max-height: unset;
+    overflow: hidden;
+  }
+
+  .preview-pane {
+    flex: 2 1 0;
+    min-height: 0;
+    border: none;
+    overflow: hidden;
   }
 }
 
@@ -132,23 +262,42 @@
   }
 
   .playground__editor__container {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: unset;
+    min-height: 0;
+    overflow: hidden;
+    height: calc(100vh - 78px);
   }
 
   .file-explorer-pane {
-    display: none;
+    display: block;
+    width: 100%;
+    flex: 0 0 90px;
+    max-height: 90px;
+    min-height: 90px;
+    overflow-y: auto;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .code-editor-pane {
+    flex: 3 1 0;
+    min-height: 0;
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    max-height: 45%;
+    max-height: unset;
+    overflow: hidden;
   }
 
   .preview-pane {
+    flex: 2 1 0;
+    min-height: 0;
     border: none;
+    overflow: hidden;
   }
 }
+
 
 @media screen and (max-width: 520px) {
   .playground__nav__wrapper {
