@@ -1,48 +1,31 @@
 .home__card__wrapper {
   position: relative;
-
   background: rgba(17, 24, 39, 0.75);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   backdrop-filter: blur(16px);
-
   border-radius: 24px;
-
   padding: 36px 32px;
-
   overflow: hidden;
-
   transition:
     transform 0.25s ease,
     border 0.25s ease,
     background 0.25s ease,
     box-shadow 0.25s ease;
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .home__card__wrapper:hover {
   transform: translateY(-6px);
-
   border: 1px solid rgba(139, 92, 246, 0.35);
-
   background: rgba(30, 41, 59, 0.8);
-
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 }
 
 .home__card__wrapper h1 {
   font-size: 1.7rem;
-
   margin-bottom: 18px;
-
   color: #f8fafc;
-
   cursor: pointer;
-
   transition: color 0.2s ease;
 }
 
@@ -52,14 +35,11 @@
 
 .home__card__wrapper p {
   color: #94a3b8;
-
   line-height: 1.8;
-
   font-size: 1rem;
 }
 
 @media screen and (max-width: 768px) {
-
   .home__card__wrapper {
     padding: 28px 24px;
   }

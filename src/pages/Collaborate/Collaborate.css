@@ -1,124 +1,91 @@
 .userrooms__page__wrapper {
   min-height: 100vh;
-
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 
   background:
-    radial-gradient(circle at top left, rgba(124, 58, 237, 0.15), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.12), transparent 30%),
+    radial-gradient(
+      circle at top left,
+      rgba(124, 58, 237, 0.15),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(59, 130, 246, 0.12),
+      transparent 30%
+    ),
     #0b0f19;
 
   color: #ffffff;
-
   overflow-x: hidden;
 }
 
 .userrooms__content__wrapper {
   flex: 1;
-
   width: 100%;
   max-width: 1300px;
-
   margin: 0 auto;
-
   padding: 40px 24px 80px;
 }
 
-/* =========================
-   NAVBAR
-========================= */
-
 .userrooms__navbar {
   width: 100%;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   padding: 18px 24px;
-
   margin-bottom: 80px;
-
   border-radius: 24px;
-
   background: rgba(15, 23, 42, 0.65);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   backdrop-filter: blur(16px);
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .userrooms__navbar__left {
   display: flex;
   align-items: center;
-
   gap: 18px;
 }
 
 .userrooms__title {
   display: flex;
   align-items: center;
-
   gap: 12px;
 }
 
 .userrooms__title__icon {
   width: 42px;
   height: 42px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 14px;
-
-  background: linear-gradient(
-    135deg,
-    #7c3aed,
-    #6366f1
-  );
-
-  box-shadow:
-    0 8px 20px rgba(124, 58, 237, 0.3);
+  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
 }
 
 .userrooms__title h1 {
   font-size: 1.6rem;
-
   font-weight: 700;
-
   letter-spacing: -0.5px;
-
   color: #f8fafc;
 }
 
 .back__btn {
   width: 46px;
   height: 46px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border: none;
-
   border-radius: 14px;
-
   background: rgba(255, 255, 255, 0.05);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   color: #f8fafc;
-
   font-size: 1.2rem;
-
   cursor: pointer;
-
   transition:
     background 0.25s ease,
     transform 0.2s ease;
@@ -126,158 +93,101 @@
 
 .back__btn:hover {
   background: rgba(255, 255, 255, 0.08);
-
   transform: translateX(-2px);
 }
 
-/* =========================
-   HERO
-========================= */
-
 .userrooms__hero {
   max-width: 850px;
-
   margin: 0 auto 70px;
-
   text-align: center;
 }
 
 .userrooms__badge {
   display: inline-flex;
   align-items: center;
-
   padding: 10px 18px;
-
   margin-bottom: 28px;
-
   border-radius: 999px;
-
   background: rgba(124, 58, 237, 0.12);
-
   border: 1px solid rgba(139, 92, 246, 0.25);
-
   color: #c4b5fd;
-
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .userrooms__hero h2 {
   font-size: 3.5rem;
-
   line-height: 1.1;
-
   letter-spacing: -2px;
-
   margin-bottom: 24px;
-
   color: #f8fafc;
 }
 
 .userrooms__hero p {
   font-size: 1.1rem;
-
   line-height: 1.8;
-
   color: #94a3b8;
 }
 
-/* =========================
-   ACTIONS SECTION
-========================= */
-
 .collab__actions__grid {
   width: 100%;
-
   display: grid;
-
   grid-template-columns: repeat(2, 1fr);
-
   gap: 28px;
-
   margin-bottom: 60px;
 }
 
 .collab__action__card {
   padding: 32px;
-
   border-radius: 24px;
-
   background: rgba(15, 23, 42, 0.65);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   backdrop-filter: blur(16px);
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .collab__action__text {
   margin-top: 14px;
   margin-bottom: 28px;
-
   color: #94a3b8;
-
   line-height: 1.7;
 }
 
 .join__room__header {
   display: flex;
   align-items: center;
-
   gap: 14px;
 }
 
 .join__room__icon {
   font-size: 1.5rem;
-
   color: #c4b5fd;
 }
 
 .join__room__header h3 {
   font-size: 1.25rem;
-
   color: #f8fafc;
 }
-
-/* =========================
-   BUTTONS
-========================= */
 
 .create__room__btn,
 .join__room__btn {
   padding: 15px 22px;
-
   border: none;
-
   border-radius: 16px;
-
-  background: linear-gradient(
-    135deg,
-    #7c3aed,
-    #6366f1
-  );
-
+  background: linear-gradient(135deg, #7c3aed, #6366f1);
   color: white;
-
   font-size: 0.95rem;
   font-weight: 600;
-
   cursor: pointer;
-
   transition:
     transform 0.2s ease,
     opacity 0.25s ease;
-
-  box-shadow:
-    0 10px 25px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.25);
 }
 
 .create__room__btn:hover,
 .join__room__btn:hover {
   transform: translateY(-2px);
-
   opacity: 0.95;
 }
 .userrooms__modal__content {
@@ -333,7 +243,9 @@
   color: #f8fafc;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.25s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.25s ease;
 }
 
 .userrooms__modal__btn:hover {
@@ -354,33 +266,21 @@
 .userrooms__modal__btn--secondary:hover {
   background: rgba(255, 255, 255, 0.12);
 }
-/* =========================
-   JOIN ROOM FORM
-========================= */
 
 .join__room__form {
   display: flex;
-
   gap: 16px;
 }
 
 .join__room__input {
   flex: 1;
-
   padding: 16px 18px;
-
   border-radius: 16px;
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   background: rgba(255, 255, 255, 0.04);
-
   color: #f8fafc;
-
   font-size: 1rem;
-
   outline: none;
-
   transition:
     border 0.25s ease,
     background 0.25s ease;
@@ -388,40 +288,27 @@
 
 .join__room__input:focus {
   border: 1px solid rgba(139, 92, 246, 0.5);
-
   background: rgba(255, 255, 255, 0.06);
 }
-
-/* =========================
-   GRID
-========================= */
 
 .userrooms__grid__container {
   display: flex;
   flex-direction: column;
-
   gap: 22px;
 }
 
 .empty__rooms__state {
   width: 100%;
-
   padding: 80px 24px;
-
   border-radius: 24px;
-
   background: rgba(15, 23, 42, 0.45);
-
   border: 1px solid rgba(255, 255, 255, 0.06);
-
   text-align: center;
 }
 
 .empty__rooms__state h3 {
   font-size: 1.8rem;
-
   margin-bottom: 12px;
-
   color: #f8fafc;
 }
 
@@ -429,12 +316,7 @@
   color: #94a3b8;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
-
 @media screen and (max-width: 768px) {
-
   .userrooms__navbar {
     margin-bottom: 60px;
   }
@@ -458,7 +340,6 @@
 }
 
 @media screen and (max-width: 520px) {
-
   .userrooms__content__wrapper {
     padding: 28px 18px 60px;
   }

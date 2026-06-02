@@ -1,12 +1,15 @@
-import React from 'react';
-import { Rnd } from 'react-rnd';
-import { ImCancelCircle } from 'react-icons/im';
-import './DraggableResizableModal.css';
+import React from "react";
+import { Rnd } from "react-rnd";
+import { ImCancelCircle } from "react-icons/im";
+import "./DraggableResizableModal.css";
 
 const DraggableResizableModal = ({ isOpen, closeModal, title, children }) => {
   return (
     <>
-      <div className={`draggable-overlay ${isOpen ? 'open' : ''}`} onClick={closeModal} />
+      <div
+        className={`draggable-overlay ${isOpen ? "open" : ""}`}
+        onClick={closeModal}
+      />
       <Rnd
         className="draggable-modal"
         bounds="window"
@@ -26,9 +29,9 @@ const DraggableResizableModal = ({ isOpen, closeModal, title, children }) => {
           left: false,
         }}
         style={{
-          visibility: isOpen ? 'visible' : 'hidden',
+          visibility: isOpen ? "visible" : "hidden",
           opacity: isOpen ? 1 : 0,
-          pointerEvents: isOpen ? 'auto' : 'none',
+          pointerEvents: isOpen ? "auto" : "none",
           zIndex: 1001,
         }}
       >

@@ -1,19 +1,19 @@
-import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import { useAuthContext } from '../../hooks/useAuthContext';
-import CodeContainer from '../../components/CodeContainer/CodeContainer';
+import React, { useEffect, useState, useRef } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useAuthContext } from "../../hooks/useAuthContext";
+import CodeContainer from "../../components/CodeContainer/CodeContainer";
 import Footer from "../../components/Footer/Footer";
 import { FiArrowLeft, FiCode, FiCodepen, FiPlusCircle } from "react-icons/fi";
-import Navbar from '../../components/Navbar/Navbar';
-import Modal from '../../components/Modal/Modal';
-import { getRandomTitle } from '../../utils/titleGenerator';
+import Navbar from "../../components/Navbar/Navbar";
+import Modal from "../../components/Modal/Modal";
+import { getRandomTitle } from "../../utils/titleGenerator";
 import "./UserCodes.css";
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
 const UserCodes = () => {
-  const [ userCodes, setUserCodes] = useState([]);
+  const [userCodes, setUserCodes] = useState([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newCodeTitle, setNewCodeTitle] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -21,15 +21,15 @@ const UserCodes = () => {
   const dropdownRef = useRef(null);
   const { dispatch, user } = useAuthContext();
   const navigate = useNavigate();
-  
-    const toggleDropdown = () => {
-      setIsOpen(!isOpen);
-    };
-  
-    const handleLogout = () => {
-      dispatch({ type: "LOGOUT" });
-      navigate("/");
-    };
+
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleLogout = () => {
+    dispatch({ type: "LOGOUT" });
+    navigate("/");
+  };
 
   const openCreateModal = () => {
     setNewCodeTitle("");
@@ -52,12 +52,12 @@ const UserCodes = () => {
     try {
       const config = {
         headers: {
-          Authorization: user?.accessToken
-        }
+          Authorization: user?.accessToken,
+        },
       };
       const body = {
         isRoom: false,
-        title: title || 'Demo Container'
+        title: title || "Demo Container",
       };
 
       const response = await axios.post(`${apiURL}/codes/create`, body, config);
@@ -69,7 +69,7 @@ const UserCodes = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error?.message || 'Unable to create code.');
+      toast.error(error?.message || "Unable to create code.");
     } finally {
       setIsCreating(false);
     }
@@ -78,7 +78,7 @@ const UserCodes = () => {
   const handleCreateSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!newCodeTitle.trim()) {
-      toast.error('Please enter a title or auto-generate one.');
+      toast.error("Please enter a title or auto-generate one.");
       return;
     }
 
@@ -91,8 +91,8 @@ const UserCodes = () => {
         try {
           const config = {
             headers: {
-              Authorization: user?.accessToken
-            }
+              Authorization: user?.accessToken,
+            },
           };
           const response = await axios.get(`${apiURL}/codes/all`, config);
           if (response && response.status === 200 && response.data.codeDocs) {
@@ -104,7 +104,7 @@ const UserCodes = () => {
         }
       }
     };
-  
+
     getAllCodes();
 
     const interval = setInterval(() => {
@@ -113,143 +113,114 @@ const UserCodes = () => {
 
     return () => {
       clearInterval(interval);
-    }
-  }, [user]);  
+    };
+  }, [user]);
 
   return (
     <div className="usercodes__page__wrapper">
-
-    <div className="usercodes__content__wrapper">
-
+      <div className="usercodes__content__wrapper">
         <Navbar
-    toggleDropdown={toggleDropdown}
-    isOpen={isOpen}
-    dropdownRef={dropdownRef}
-    handleLogout={handleLogout}
-/>
+          toggleDropdown={toggleDropdown}
+          isOpen={isOpen}
+          dropdownRef={dropdownRef}
+          handleLogout={handleLogout}
+        />
 
         <div className="usercodes__hero">
+          <span className="usercodes__badge">Personal Workspace</span>
 
-            <span className="usercodes__badge">
-                Personal Workspace
-            </span>
+          <h2>Manage Your Coding Projects</h2>
 
-            <h2>
-                Manage Your Coding Projects
-            </h2>
-
-            <p>
-                Access your saved playgrounds, continue building projects,
-                and organize your development workflow in one place.
-            </p>
-
+          <p>
+            Access your saved playgrounds, continue building projects, and
+            organize your development workflow in one place.
+          </p>
         </div>
 
         <div className="usercodes__actions__section">
+          <div className="usercodes__action__card">
+            <div className="usercodes__action__header">
+              <FiPlusCircle className="usercodes__action__icon" />
 
-    <div className="usercodes__action__card">
+              <h3>Create New Playground</h3>
+            </div>
 
-        <div className="usercodes__action__header">
+            <p className="usercodes__action__text">
+              Start building a fresh project, experiment with ideas, and save
+              your code instantly.
+            </p>
 
-            <FiPlusCircle className="usercodes__action__icon" />
-
-            <h3>Create New Playground</h3>
-
+            <button onClick={openCreateModal} className="create__code__btn">
+              Create New Code
+            </button>
+          </div>
         </div>
-
-        <p className="usercodes__action__text">
-            Start building a fresh project, experiment with ideas,
-            and save your code instantly.
-        </p>
-
-        <button
-            onClick={openCreateModal}
-            className="create__code__btn"
-        >
-            Create New Code
-        </button>
-
-    </div>
-
-</div>
 
         <Modal isOpen={isCreateModalOpen} closeModal={closeCreateModal}>
           <div className="usercodes__modal__content">
-              <div className="usercodes__modal__header">
-                <h2>New Playground Title</h2>
-                <p>Type a name for your code project, or auto-generate one.</p>
-              </div>
-
-              <form onSubmit={handleCreateSubmit}>
-                <label className="usercodes__modal__label" htmlFor="codeTitle">
-                  Title
-                </label>
-                <input
-                  id="codeTitle"
-                  type="text"
-                  className="usercodes__modal__input"
-                  value={newCodeTitle}
-                  onChange={(e) => setNewCodeTitle(e.target.value)}
-                  placeholder="Enter a title for your new code"
-                />
-
-                <div className="usercodes__modal__actions">
-                  <button
-                    type="button"
-                    className="usercodes__modal__btn usercodes__modal__btn--secondary"
-                    onClick={generateRandomTitle}
-                  >
-                    Auto-generate Title
-                  </button>
-                  <button
-                    type="submit"
-                    className="usercodes__modal__btn"
-                    disabled={isCreating}
-                  >
-                    {isCreating ? 'Creating…' : 'Create Code'}
-                  </button>
-                </div>
-              </form>
+            <div className="usercodes__modal__header">
+              <h2>New Playground Title</h2>
+              <p>Type a name for your code project, or auto-generate one.</p>
             </div>
+
+            <form onSubmit={handleCreateSubmit}>
+              <label className="usercodes__modal__label" htmlFor="codeTitle">
+                Title
+              </label>
+              <input
+                id="codeTitle"
+                type="text"
+                className="usercodes__modal__input"
+                value={newCodeTitle}
+                onChange={(e) => setNewCodeTitle(e.target.value)}
+                placeholder="Enter a title for your new code"
+              />
+
+              <div className="usercodes__modal__actions">
+                <button
+                  type="button"
+                  className="usercodes__modal__btn usercodes__modal__btn--secondary"
+                  onClick={generateRandomTitle}
+                >
+                  Auto-generate Title
+                </button>
+                <button
+                  type="submit"
+                  className="usercodes__modal__btn"
+                  disabled={isCreating}
+                >
+                  {isCreating ? "Creating…" : "Create Code"}
+                </button>
+              </div>
+            </form>
+          </div>
         </Modal>
 
-            {userCodes.length > 0 ? (
+        {userCodes.length > 0 ? (
+          <div className="usercodes__grid__container">
+            {userCodes.map((code) => {
+              return (
+                <CodeContainer
+                  key={code._id}
+                  title={code.title}
+                  id={code._id}
+                  time={code.updatedAt}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="empty__codes__state">
+            <h3>No Codes Created Yet</h3>
 
-                <div className="usercodes__grid__container">
+            <p>Start by creating your first coding workspace.</p>
+          </div>
+        )}
+      </div>
 
-                    {userCodes.map((code) => {
-                        return (
-                            <CodeContainer
-                                key={code._id}
-                                title={code.title}
-                                id={code._id}
-                                time={code.updatedAt}
-                            />
-                        );
-                    })}
-
-                </div>
-
-            ) : (
-
-                <div className="empty__codes__state">
-
-                    <h3>No Codes Created Yet</h3>
-
-                    <p>
-                        Start by creating your first coding workspace.
-                    </p>
-
-                </div>
-
-            )}
-
-        </div>
-
-        <Footer />
-
+      <Footer />
     </div>
-  )
-}
+  );
+};
 
 export default UserCodes;

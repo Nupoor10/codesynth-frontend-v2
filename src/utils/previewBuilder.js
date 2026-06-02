@@ -11,7 +11,6 @@ const isExternal = (url) => {
 
 function buildPreview(files = [], entryName, title) {
   console.debug('[previewBuilder] buildPreview called', { time: Date.now(), fileIds: files.map(f => f.id) });
-  // Choose entry HTML
   let entry = null;
   if (entryName) entry = findFileByName(files, entryName);
   if (!entry) entry = files.find(f => f.name.toLowerCase() === 'index.html');
@@ -27,7 +26,6 @@ function buildPreview(files = [], entryName, title) {
 
   const blobUrls = [];
 
-  // Replace local stylesheet hrefs with blob URLs when possible
   const links = Array.from(doc.querySelectorAll('link[rel="stylesheet"][href]'));
   links.forEach(link => {
     const href = link.getAttribute('href');
@@ -40,7 +38,6 @@ function buildPreview(files = [], entryName, title) {
     link.setAttribute('href', url);
   });
 
-  // Replace local script src with blob URLs when possible
   const scripts = Array.from(doc.querySelectorAll('script[src]'));
   scripts.forEach(script => {
     const src = script.getAttribute('src');
@@ -64,11 +61,6 @@ function buildPreview(files = [], entryName, title) {
     }
   }
 
-  // const head = doc.querySelector('head') || doc.documentElement.appendChild(doc.createElement('head'));
-  // const style = doc.createElement('style');
-  // style.textContent = 'html, body { margin: 0; padding: 0; background: white; color: black; min-height: 100%; }';
-  // head.appendChild(style);
-
   const serializer = new XMLSerializer();
   const html = serializer.serializeToString(doc);
   const srcDoc = html;
@@ -78,7 +70,10 @@ function buildPreview(files = [], entryName, title) {
 
 function revokeBlobUrls(urls = []) {
   urls.forEach(u => {
-    try { URL.revokeObjectURL(u); } catch (e) { /* ignore */ }
+    try {
+      URL.revokeObjectURL(u);
+    } catch (e) {
+    }
   });
 }
 

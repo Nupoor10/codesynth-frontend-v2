@@ -1,11 +1,11 @@
 .code__editor__component {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    background-color: #1e1e1e;
-    color: #d4d4d4;
-    overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  overflow: hidden;
 }
 
 .code__editor__component section {
@@ -15,17 +15,17 @@
 }
 
 .editor__placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
-    flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  flex: 1;
 }
 
 .editor__placeholder p {
-    font-size: 14px;
-    color: #858585;
+  font-size: 14px;
+  color: #858585;
 }
 
 @media screen and (max-width: 768px) {
@@ -38,4 +38,3 @@
     height: 300px !important;
   }
 }
-

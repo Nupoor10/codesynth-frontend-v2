@@ -1,105 +1,72 @@
 .home__navbar {
   width: 100%;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   padding: 18px 24px;
-
   margin-bottom: 80px;
-
   border-radius: 24px;
-
   background: rgba(15, 23, 42, 0.65);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   backdrop-filter: blur(16px);
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .home__navbar__left {
   display: flex;
   align-items: center;
-
   gap: 40px;
 }
 
 .home__logo {
   display: flex;
   align-items: center;
-
   gap: 12px;
-
   cursor: pointer;
 }
 
 .home__logo__icon {
   display: flex;
-
   align-items: center;
   justify-content: center;
-
   width: 44px;
   height: 44px;
-
   border-radius: 14px;
-
   background: rgba(124, 58, 237, 0.15);
-
   overflow: hidden;
 }
 
 .home__logo__image {
   width: 24px;
   height: 24px;
-
   object-fit: contain;
 }
 
 .home__logo h1 {
   font-size: 1.5rem;
-
   font-weight: 700;
-
   letter-spacing: -0.5px;
-
   color: #f8fafc;
 }
 
 .home__navbar__links {
   display: flex;
-
   align-items: center;
-
   gap: 14px;
 }
 
 .nav__link {
   display: flex;
   align-items: center;
-
   gap: 10px;
-
   background: transparent;
-
   border: none;
-
   color: #94a3b8;
-
   font-size: 0.95rem;
-
   font-weight: 500;
-
   padding: 10px 16px;
-
   border-radius: 12px;
-
   cursor: pointer;
-
   transition:
     background 0.25s ease,
     color 0.25s ease,
@@ -108,44 +75,33 @@
 
 .nav__link:hover {
   background: rgba(255, 255, 255, 0.05);
-
   color: #f8fafc;
 }
 
 .nav__link.active {
   background: rgba(124, 58, 237, 0.15);
-
   color: #c4b5fd;
-
   border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
 .home__navbar__right {
   display: flex;
-
   align-items: center;
 }
 
 .dashboard__header__icons__container {
   position: relative;
-
   display: flex;
-
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
-
   padding: 0 16px;
   height: 52px;
   min-width: 170px;
   max-width: 260px;
-
   border-radius: 16px;
-
   background: rgba(255, 255, 255, 0.05);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   transition:
     background 0.25s ease,
     border 0.25s ease;
@@ -155,13 +111,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-
   width: 100%;
   background: transparent;
   border: none;
   padding: 0;
   margin: 0;
-
   color: inherit;
   cursor: pointer;
 }
@@ -184,48 +138,31 @@
 
 .dashboard__header__icons__container:hover {
   background: rgba(255, 255, 255, 0.08);
-
   border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
 .dashboard__header__icons {
   font-size: 2rem;
-
   color: #c4b5fd;
-
   cursor: pointer;
 }
 
 .user-dropdown {
   position: absolute;
-
   top: 65px;
   right: 0;
-
   min-width: 140px;
-
   padding: 14px 18px;
-
   border-radius: 14px;
-
   background: rgba(15, 23, 42, 0.98);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   color: #f8fafc;
-
   display: flex;
-
   align-items: center;
   justify-content: center;
-
   cursor: pointer;
-
   transition: background 0.25s ease;
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.35);
-
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   z-index: 100;
 }
 
@@ -234,22 +171,16 @@
 }
 
 @media screen and (max-width: 992px) {
-
   .home__navbar {
     flex-direction: column;
-
     align-items: flex-start;
-
     gap: 24px;
   }
 
   .home__navbar__left {
     width: 100%;
-
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: 20px;
   }
 
@@ -259,24 +190,19 @@
 }
 
 @media screen and (max-width: 520px) {
-
   .home__navbar {
     padding: 18px;
-
     margin-bottom: 50px;
   }
 
   .home__navbar__left {
     flex-direction: column;
-
     align-items: flex-start;
   }
 
   .home__navbar__links {
     width: 100%;
-
     overflow-x: auto;
-
     padding-bottom: 4px;
   }
 

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { useAuthContext } from '../../hooks/useAuthContext';
-import "./ParticipantList.css"
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useAuthContext } from "../../hooks/useAuthContext";
+import "./ParticipantList.css";
 
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -21,7 +21,10 @@ const ParticipantList = ({ roomId, clients = [] }) => {
 
       try {
         const config = { headers: { Authorization: user?.accessToken } };
-        const response = await axios.get(`${apiURL}/rooms/users/${roomId}`, config);
+        const response = await axios.get(
+          `${apiURL}/rooms/users/${roomId}`,
+          config,
+        );
 
         if (response && response.status === 200) {
           setParticipants(response.data.allUsers || []);
@@ -29,9 +32,9 @@ const ParticipantList = ({ roomId, clients = [] }) => {
           setParticipants([]);
         }
       } catch (fetchError) {
-        console.error('Failed to load participants:', fetchError);
-        setError('Unable to load participant list.');
-        toast.error('Unable to load participant list.');
+        console.error("Failed to load participants:", fetchError);
+        setError("Unable to load participant list.");
+        toast.error("Unable to load participant list.");
         setParticipants([]);
       } finally {
         setIsLoading(false);
@@ -62,12 +65,14 @@ const ParticipantList = ({ roomId, clients = [] }) => {
 
                 <div className="participant__details">
                   <h3>{item.username}</h3>
-                  <p>{isConnected ? 'Currently Active' : 'Offline'}</p>
+                  <p>{isConnected ? "Currently Active" : "Offline"}</p>
                 </div>
               </div>
 
-              <div className={`participant__status ${isConnected ? 'connected' : 'disconnected'}`}>
-                {isConnected ? 'Connected' : 'Disconnected'}
+              <div
+                className={`participant__status ${isConnected ? "connected" : "disconnected"}`}
+              >
+                {isConnected ? "Connected" : "Disconnected"}
               </div>
             </div>
           );
@@ -77,6 +82,6 @@ const ParticipantList = ({ roomId, clients = [] }) => {
       )}
     </div>
   );
-}
+};
 
-export default ParticipantList
+export default ParticipantList;

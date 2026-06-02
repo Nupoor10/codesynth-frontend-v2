@@ -45,9 +45,7 @@
 
 .details__container > p {
   margin: 0;
-
   font-size: 0.9rem;
-
   color: #94a3b8;
 }
 
@@ -61,23 +59,15 @@
   width: 36px;
   height: 36px;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   text-decoration: none;
-
   border-radius: 14px;
-
   background: rgba(124, 58, 237, 0.12);
-
   border: 1px solid rgba(139, 92, 246, 0.25);
-
   color: #c4b5fd;
-
   font-size: 1.3rem;
-
   transition:
     transform 0.2s ease,
     background 0.25s ease,
@@ -93,20 +83,19 @@
 
 .colored__btn:hover {
   transform: translateY(-2px);
-
   background: rgba(255, 255, 255, 0.08);
-
   border-color: rgba(139, 92, 246, 0.25);
-
   color: #ede9fe;
 }
 
-.home__link, .home__link:visited, .home__link:active, .home__link:hover {
+.home__link,
+.home__link:visited,
+.home__link:active,
+.home__link:hover {
   color: #c4b5fd;
 }
 
 @media screen and (max-width: 768px) {
-
   .playground__title {
     font-size: 1rem;
   }
@@ -121,7 +110,6 @@
 }
 
 @media screen and (max-width: 520px) {
-
   .home__icon__container {
     width: 100%;
   }
@@ -129,5 +117,4 @@
   .details__container {
     max-width: 120px;
   }
-
 }

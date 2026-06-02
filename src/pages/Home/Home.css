@@ -1,62 +1,49 @@
 .home__page__wrapper {
   min-height: 100vh;
-
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-
   background:
-    radial-gradient(circle at top left, rgba(124, 58, 237, 0.15), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.12), transparent 30%),
+    radial-gradient(
+      circle at top left,
+      rgba(124, 58, 237, 0.15),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(59, 130, 246, 0.12),
+      transparent 30%
+    ),
     #0b0f19;
-
   color: #ffffff;
-
   overflow-x: hidden;
 }
 
 .home__page__content__wrapper {
   flex: 1;
-
   width: 100%;
   max-width: 1300px;
-
   margin: 0 auto;
-
   padding: 40px 24px 80px;
 }
 
-/* =========================
-   NAVBAR
-========================= */
-
 .home__navbar {
   width: 100%;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   padding: 18px 24px;
-
   margin-bottom: 80px;
-
   border-radius: 24px;
-
   background: rgba(15, 23, 42, 0.65);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   backdrop-filter: blur(16px);
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .home__navbar__left {
   display: flex;
   align-items: center;
-
   gap: 40px;
 }
 
@@ -65,14 +52,9 @@
   align-items: center;
 }
 
-/* =========================
-   LOGO
-========================= */
-
 .home__logo {
   display: flex;
   align-items: center;
-
   gap: 12px;
 }
 
@@ -90,41 +72,26 @@
 
 .home__logo h1 {
   font-size: 1.5rem;
-
   font-weight: 700;
-
   letter-spacing: -0.5px;
-
   color: #f8fafc;
 }
-
-/* =========================
-   NAV LINKS
-========================= */
 
 .home__navbar__links {
   display: flex;
   align-items: center;
-
   gap: 14px;
 }
 
 .nav__link {
   background: transparent;
-
   border: none;
-
   color: #94a3b8;
-
   font-size: 0.95rem;
   font-weight: 500;
-
   padding: 10px 16px;
-
   border-radius: 12px;
-
   cursor: pointer;
-
   transition:
     background 0.25s ease,
     color 0.25s ease,
@@ -133,38 +100,25 @@
 
 .nav__link:hover {
   background: rgba(255, 255, 255, 0.05);
-
   color: #f8fafc;
 }
 
 .nav__link.active {
   background: rgba(124, 58, 237, 0.15);
-
   border: 1px solid rgba(139, 92, 246, 0.25);
-
   color: #c4b5fd;
 }
 
-/* =========================
-   PROFILE / DROPDOWN
-========================= */
-
 .dashboard__header__icons__container {
   position: relative;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   width: 52px;
   height: 52px;
-
   border-radius: 16px;
-
   background: rgba(255, 255, 255, 0.05);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   transition:
     background 0.25s ease,
     border 0.25s ease;
@@ -172,17 +126,13 @@
 
 .dashboard__header__icons__container:hover {
   background: rgba(255, 255, 255, 0.08);
-
   border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
 .dashboard__header__icons {
   font-size: 2rem;
-
   color: #c4b5fd;
-
   cursor: pointer;
-
   transition:
     transform 0.2s ease,
     color 0.25s ease;
@@ -190,39 +140,25 @@
 
 .dashboard__header__icons:hover {
   transform: scale(1.05);
-
   color: #ddd6fe;
 }
 
 .user-dropdown {
   position: absolute;
-
   top: 65px;
   right: 0;
-
   min-width: 140px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 14px 18px;
-
   border-radius: 14px;
-
   background: rgba(15, 23, 42, 0.98);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   color: #f8fafc;
-
   cursor: pointer;
-
   transition: background 0.25s ease;
-
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.35);
-
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   z-index: 100;
 }
 
@@ -230,97 +166,61 @@
   background: rgba(30, 41, 59, 0.95);
 }
 
-/* =========================
-   HERO SECTION
-========================= */
-
 .home__hero {
   max-width: 850px;
-
   margin: 0 auto 80px;
-
   text-align: center;
 }
 
 .home__badge {
   display: inline-flex;
   align-items: center;
-
   padding: 10px 18px;
-
   margin-bottom: 28px;
-
   border-radius: 999px;
-
   background: rgba(124, 58, 237, 0.12);
-
   border: 1px solid rgba(139, 92, 246, 0.25);
-
   color: #c4b5fd;
-
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .home__hero h2 {
   font-size: 4rem;
-
   line-height: 1.1;
-
   letter-spacing: -2px;
-
   margin-bottom: 28px;
-
   color: #f8fafc;
 }
 
 .home__hero p {
   font-size: 1.15rem;
-
   line-height: 1.8;
-
   color: #94a3b8;
 }
 
-/* =========================
-   CARDS
-========================= */
-
 .home__page__cards {
   display: grid;
-
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-
   gap: 32px;
-
   width: 100%;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
-
 @media screen and (max-width: 992px) {
-
   .home__hero h2 {
     font-size: 3rem;
   }
 
   .home__navbar {
     flex-direction: column;
-
     align-items: flex-start;
-
     gap: 24px;
   }
 
   .home__navbar__left {
     width: 100%;
-
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: 20px;
   }
 
@@ -330,7 +230,6 @@
 }
 
 @media screen and (max-width: 768px) {
-
   .home__hero {
     margin-bottom: 60px;
   }
@@ -345,28 +244,23 @@
 }
 
 @media screen and (max-width: 520px) {
-
   .home__page__content__wrapper {
     padding: 28px 18px 60px;
   }
 
   .home__navbar {
     padding: 18px;
-
     margin-bottom: 50px;
   }
 
   .home__navbar__left {
     flex-direction: column;
-
     align-items: flex-start;
   }
 
   .home__navbar__links {
     width: 100%;
-
     overflow-x: auto;
-
     padding-bottom: 4px;
   }
 

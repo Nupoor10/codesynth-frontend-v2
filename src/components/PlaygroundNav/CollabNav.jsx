@@ -1,18 +1,30 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaRegSave, FaUsers, FaRegLightbulb } from 'react-icons/fa';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { useAuthContext } from '../../hooks/useAuthContext';
-import Modal from '../Modal/Modal';
-import ParticipantList from '../ParticipantList/ParticipantList';
-import './PlaygroundNav.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaRegSave, FaUsers, FaRegLightbulb } from "react-icons/fa";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useAuthContext } from "../../hooks/useAuthContext";
+import Modal from "../Modal/Modal";
+import ParticipantList from "../ParticipantList/ParticipantList";
+import "./PlaygroundNav.css";
 
 const apiURL = import.meta.env.VITE_BACKEND_URL;
 
-const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisconnect, clients, onSaveWhiteboard, onOpenBrainstorm, socket }) => {
+const PlaygroundNav = ({
+  title,
+  setTitle,
+  roomId,
+  owner,
+  isAdmin,
+  id,
+  handleDisconnect,
+  clients,
+  onSaveWhiteboard,
+  onOpenBrainstorm,
+  socket,
+}) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState('settings');
+  const [activeMenu, setActiveMenu] = useState("settings");
   const navigate = useNavigate();
 
   const { user } = useAuthContext();
@@ -27,17 +39,16 @@ const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisc
 
   const handleSelectChange = (event) => {
     setActiveMenu(event.target.value);
-    if (event.target.value === 'users') {
+    if (event.target.value === "users") {
       openModal(event.target.value);
-    } else if (event.target.value === 'brainstorm') {
+    } else if (event.target.value === "brainstorm") {
       onOpenBrainstorm?.();
-    } else if (event.target.value === 'copyid') {
+    } else if (event.target.value === "copyid") {
       copyIDToClipboard();
     } else {
       handleLeave();
     }
   };
-
 
   const saveCode = async () => {
     try {
@@ -53,17 +64,16 @@ const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisc
             title,
             isRoom: true,
           },
-          config
+          config,
         );
         if (response && response.status === 200) {
-          toast.success('Updated successfully!');
+          toast.success("Updated successfully!");
 
-          // 💡 FIX: Broadcast save notification to all other users in the socket room
           const activeRoomId = roomId || id;
           if (socket && socket.connected && activeRoomId) {
-            socket.emit('WORKSPACE_SAVED', { 
-              room: activeRoomId, 
-              username: user?.name 
+            socket.emit("WORKSPACE_SAVED", {
+              room: activeRoomId,
+              username: user?.name,
             });
           }
         }
@@ -75,52 +85,77 @@ const PlaygroundNav = ({ title, setTitle, roomId, owner, isAdmin, id, handleDisc
   };
 
   const copyIDToClipboard = () => {
-    // Pulls roomId property, falls back safely to document identity key if empty
     const accurateIdToShare = roomId || id;
-    
+
     if (!accurateIdToShare) {
       toast.error("Room ID not generated yet. Please wait.");
       return;
     }
-    
+
     navigator.clipboard.writeText(accurateIdToShare);
     toast.success("Copied Room ID to Clipboard!");
   };
-  
+
   const handleLeave = () => {
-    handleDisconnect(); 
-    navigate('/collab');
-  }
+    handleDisconnect();
+    navigate("/collab");
+  };
 
   return (
     <div className="playground__controls">
       <div className="home__icon__container">
         <div className="details__container">
-            <input
-              disabled={isAdmin}
-              className="playground__title"
-              value={window.innerWidth < 768 ? title?.substring(0, 10) + "..." : title}
-              type="text"
-              onChange={(event) => setTitle(event.target.value)}
-            />
-            <p>{window.innerWidth < 768 ? owner?.substring(0, 10) + "..." : owner}</p>
+          <input
+            disabled={isAdmin}
+            className="playground__title"
+            value={
+              window.innerWidth < 768 ? title?.substring(0, 10) + "..." : title
+            }
+            type="text"
+            onChange={(event) => setTitle(event.target.value)}
+          />
+          <p>
+            {window.innerWidth < 768 ? owner?.substring(0, 10) + "..." : owner}
+          </p>
         </div>
       </div>
-      <div className='playground__controls__container'>
-          <button onClick={saveCode} title="Save Workspace" className="colored__btn"><FaRegSave /></button>
-          <button className='colored__btn' onClick={() => onOpenBrainstorm?.()} title="Brainstorm">
-            <FaRegLightbulb />
-          </button>
-          <button className='colored__btn colored__btn__long' onClick={copyIDToClipboard} title="Copy Room ID">
-            Copy ID
-          </button>
-          <button className='colored__btn colored__btn__long' onClick={handleLeave} title="Leave Room">
-            Leave Room
-          </button>
-          <button className='colored__btn' onClick={() => openModal()} title="View Participants">
-            <FaUsers />
-          </button>
-        </div>
+      <div className="playground__controls__container">
+        <button
+          onClick={saveCode}
+          title="Save Workspace"
+          className="colored__btn"
+        >
+          <FaRegSave />
+        </button>
+        <button
+          className="colored__btn"
+          onClick={() => onOpenBrainstorm?.()}
+          title="Brainstorm"
+        >
+          <FaRegLightbulb />
+        </button>
+        <button
+          className="colored__btn colored__btn__long"
+          onClick={copyIDToClipboard}
+          title="Copy Room ID"
+        >
+          Copy ID
+        </button>
+        <button
+          className="colored__btn colored__btn__long"
+          onClick={handleLeave}
+          title="Leave Room"
+        >
+          Leave Room
+        </button>
+        <button
+          className="colored__btn"
+          onClick={() => openModal()}
+          title="View Participants"
+        >
+          <FaUsers />
+        </button>
+      </div>
       <Modal
         isOpen={modalIsOpen}
         closeModal={closeModal}

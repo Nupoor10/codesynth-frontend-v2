@@ -33,7 +33,9 @@
   font-size: 14px;
   padding: 4px 8px;
   border-radius: 3px;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .btn-create-file:hover {
@@ -175,7 +177,9 @@
   font-size: 11px;
   padding: 4px 6px;
   border-radius: 2px;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -221,14 +225,13 @@
   border-radius: 0 2px 2px 0;
 }
 
-/* Modal styles for create file (scoped) */
 .fe-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -242,7 +245,7 @@
   width: 420px;
   max-width: calc(100% - 32px);
   border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -263,7 +266,10 @@
   font-size: 16px;
 }
 
-.fe-modal input:focus { outline: none; border-color: #007acc; }
+.fe-modal input:focus {
+  outline: none;
+  border-color: #007acc;
+}
 
 .fe-modal-actions {
   display: flex;
@@ -308,7 +314,6 @@
   font-size: 12px;
 }
 
-/* Scrollbar styling */
 .files-list::-webkit-scrollbar {
   width: 10px;
 }
@@ -326,7 +331,6 @@
   background: #5a5a5a;
 }
 
-/* Mobile responsiveness */
 @media (max-width: 768px) {
   .file-explorer {
     max-height: 200px;

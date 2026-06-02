@@ -1,21 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
-import './Whiteboard.css';
+import React, { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import "./Whiteboard.css";
 
-const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, accessToken }) => {
+const Whiteboard = ({
+  isRoom,
+  yDoc,
+  id,
+  initialData,
+  whiteboardSaveRef,
+  apiURL,
+  accessToken,
+}) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
-  const [color, setColor] = useState('black');
+  const [color, setColor] = useState("black");
   const [lineWidth, setLineWidth] = useState(4);
   const [isDrawing, setIsDrawing] = useState(false);
   const currentStrokeRef = useRef(null);
   const yLinesArrayRef = useRef(null);
-  
-  // CRITICAL FLAG: Tracks whether the background base document snapshot image was loaded
+
   const isImageLoadedRef = useRef(false);
 
   const getCanvas = () => canvasRef.current;
-  const getCtx = () => canvasRef.current?.getContext('2d') || null;
+  const getCtx = () => canvasRef.current?.getContext("2d") || null;
   const getBounds = () => containerRef.current?.getBoundingClientRect();
 
   const setupCanvas = () => {
@@ -29,10 +36,10 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
     canvas.style.width = `${bounds.width}px`;
     canvas.style.height = `${bounds.height}px`;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     return ctx;
   };
 
@@ -42,7 +49,6 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
     ctx.clearRect(0, 0, bounds.width, bounds.height);
   };
 
-  // Loads base template snapshot background from MongoDB storage collections
   const drawImageFromData = (callback) => {
     const ctx = getCtx();
     const bounds = getBounds();
@@ -60,7 +66,6 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
     img.src = initialData;
   };
 
-  // Fixed Draw routine layer to safely overlay vector elements on top of image background context maps
   const redrawPaths = (paths) => {
     const ctx = getCtx();
     const bounds = getBounds();
@@ -68,7 +73,6 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
 
     clearCanvas(ctx);
 
-    // If initial image database background template is tracking, preserve it beneath drawings
     if (initialData && isImageLoadedRef.current) {
       const img = new Image();
       img.src = initialData;
@@ -78,8 +82,9 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
     if (!paths || paths.length === 0) return;
 
     paths.forEach((path) => {
-      if (!path || !Array.isArray(path.points) || path.points.length === 0) return;
-      ctx.strokeStyle = path.color || 'black';
+      if (!path || !Array.isArray(path.points) || path.points.length === 0)
+        return;
+      ctx.strokeStyle = path.color || "black";
       ctx.lineWidth = path.width || 4;
       ctx.beginPath();
       const [firstPoint, ...rest] = path.points;
@@ -102,7 +107,7 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
 
     const initializeWhiteboardWorkspace = () => {
       if (isRoom && yDoc) {
-        const array = yDoc.getArray('whiteboard-paths-' + id);
+        const array = yDoc.getArray("whiteboard-paths-" + id);
         yLinesArrayRef.current = array;
         array.observe(handleYjsChanges);
 
@@ -113,7 +118,6 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
       }
     };
 
-    // If initial image payload exists, render it first, then paint vector elements
     if (initialData && !isImageLoadedRef.current) {
       drawImageFromData(initializeWhiteboardWorkspace);
     } else {
@@ -139,27 +143,30 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [isRoom, initialData]);
 
-  // Exposed manual reference connector pipeline bound to the main application navigation header menu bar
   useEffect(() => {
     whiteboardSaveRef.current = async () => {
       const canvas = getCanvas();
-      if (!canvas) throw new Error('Whiteboard canvas not available');
-      
-      const dataURL = canvas.toDataURL('image/png');
-      if (!accessToken) throw new Error('Missing access token');
+      if (!canvas) throw new Error("Whiteboard canvas not available");
+
+      const dataURL = canvas.toDataURL("image/png");
+      if (!accessToken) throw new Error("Missing access token");
 
       const config = {
         headers: {
           Authorization: accessToken,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       };
 
-      await axios.put(`${apiURL}/codes/${id}/whiteboard`, { whiteboardData: dataURL }, config);
+      await axios.put(
+        `${apiURL}/codes/${id}/whiteboard`,
+        { whiteboardData: dataURL },
+        config,
+      );
       return dataURL;
     };
 
@@ -177,7 +184,7 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
 
     return {
       x: event.clientX - bounds.left,
-      y: event.clientY - bounds.top
+      y: event.clientY - bounds.top,
     };
   };
 
@@ -212,7 +219,7 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
     currentStrokeRef.current = {
       points: [point],
       color,
-      width: lineWidth
+      width: lineWidth,
     };
   };
 
@@ -241,8 +248,7 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
   const handleClearCanvas = () => {
     const ctx = getCtx();
     if (!ctx) return;
-    
-    // Explicitly reset base template trackers so cleared rooms remain blank
+
     isImageLoadedRef.current = false;
     clearCanvas(ctx);
 
@@ -257,17 +263,21 @@ const Whiteboard = ({ isRoom, yDoc, id, initialData, whiteboardSaveRef, apiURL, 
     <div className="whiteboard__container" ref={containerRef}>
       <div className="whiteboard__toolbar">
         <div className="whiteboard__colors">
-          {['black', 'red', 'blue', 'green'].map((swatch) => (
+          {["black", "red", "blue", "green"].map((swatch) => (
             <button
               key={swatch}
               type="button"
-              className={`whiteboard__color-option ${color === swatch ? 'selected' : ''}`}
+              className={`whiteboard__color-option ${color === swatch ? "selected" : ""}`}
               style={{ backgroundColor: swatch }}
               onClick={() => setColor(swatch)}
             />
           ))}
         </div>
-        <button type="button" className="whiteboard__button" onClick={handleClearCanvas}>
+        <button
+          type="button"
+          className="whiteboard__button"
+          onClick={handleClearCanvas}
+        >
           Clear Canvas
         </button>
       </div>
