@@ -83,10 +83,6 @@
   overflow: hidden;
 }
 
-.file-explorer-pane {
-  max-width: 320px;
-}
-
 .code-editor-pane,
 .preview-pane {
   display: flex;
@@ -132,6 +128,12 @@
   height: 100%;
   border: none;
   background: white;
+}
+
+@media (min-width: 800px) {
+  .file-explorer-pane {
+    max-width: 320px;
+  }
 }
 
 @media screen and (max-width: 1200px) {

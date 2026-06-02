@@ -31,17 +31,12 @@ const getLanguageFromExtension = (extension) => {
   return extension;
 };
 
-const CodeEditor = ({
-  file,
-  onFileChange,
-  isRoom,
-  yProvider,
-  yFileContents,
-}) => {
+const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) => {
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
   const modelMapRef = useRef(new Map());
   const bindingMapRef = useRef(new Map());
+  const yTextObserverMapRef = useRef(new Map());
   const ignoreChangeRef = useRef(false);
   const activeFileIdRef = useRef(null);
 
@@ -49,22 +44,14 @@ const CodeEditor = ({
 
   const createModelForFile = (currentFile, yText) => {
     const fileId = getFileId(currentFile);
-    console.debug("[editor] createModelForFile", { fileId, hasYText: !!yText });
-
     const language = getLanguageFromExtension(currentFile.extension);
-    const uri = monacoRef.current.Uri.parse(
-      `inmemory://model/${fileId}.${currentFile.extension}`,
-    );
+    const uri = monacoRef.current.Uri.parse(`inmemory://model/${fileId}.${currentFile.extension}`);
 
     let model = monacoRef.current.editor.getModel(uri);
-    if (model) {
-      return model;
-    }
+    if (model) return model;
 
-    const content =
-      yText && yText.length > 0 ? yText.toString() : currentFile.content || "";
+    const content = yText && yText.length > 0 ? yText.toString() : currentFile.content || "";
     model = monacoRef.current.editor.createModel(content, language, uri);
-
     return model;
   };
 
@@ -91,8 +78,7 @@ const CodeEditor = ({
     const currentEditorModel = editorRef.current.getModel();
     const shouldSetModel = !currentEditorModel || currentEditorModel !== model;
     const existingBinding = bindingMapRef.current.get(fileId);
-    const shouldAttachBinding =
-      isRoom && yProvider && yText && !existingBinding;
+    const shouldAttachBinding = isRoom && yProvider && yText && !existingBinding;
 
     if (!shouldSetModel && !shouldAttachBinding) {
       activeFileIdRef.current = fileId;
@@ -105,11 +91,18 @@ const CodeEditor = ({
           binding.destroy();
         } catch (e) {}
         bindingMapRef.current.delete(bindingFileId);
+        const oldObserver = yTextObserverMapRef.current.get(bindingFileId);
+        if (oldObserver) {
+          try {
+            const oldYText = yFileContents?.get(bindingFileId);
+            if (oldYText) oldYText.unobserve(oldObserver);
+          } catch (e) {}
+          yTextObserverMapRef.current.delete(bindingFileId);
+        }
       }
     });
 
     if (shouldSetModel) {
-      console.debug("[editor] setting model on editor", { fileId });
       editorRef.current.setModel(model);
     }
     activeFileIdRef.current = fileId;
@@ -124,27 +117,25 @@ const CodeEditor = ({
           bindingMapRef.current.delete(fileId);
         }
 
-        console.debug("[editor] Creating fresh MonacoBinding for tab switch", {
-          fileId,
-        });
-
-        const binding = new MonacoBinding(
-          yText,
-          model,
-          new Set([editorRef.current]),
-          yProvider.awareness,
-        );
+        const binding = new MonacoBinding(yText, model, new Set([editorRef.current]), yProvider.awareness);
         bindingMapRef.current.set(fileId, binding);
 
-        console.debug(
-          "[editor] MonacoBinding successfully attached to swapped tab",
-          { fileId },
-        );
+        if (!yTextObserverMapRef.current.has(fileId)) {
+          const observer = () => {
+            try {
+              const v = yText.toString();
+              if (model && model.getValue() !== v) {
+                ignoreChangeRef.current = true;
+                model.setValue(v);
+                ignoreChangeRef.current = false;
+              }
+            } catch (e) {}
+          };
+          yText.observe(observer);
+          yTextObserverMapRef.current.set(fileId, observer);
+        }
       } catch (e) {
-        console.error(
-          "[editor] failed to create MonacoBinding on tab switch",
-          e,
-        );
+        console.error("[editor] failed to create MonacoBinding on tab switch", e);
       }
     }
   };
@@ -158,35 +149,22 @@ const CodeEditor = ({
   useEffect(() => {
     if (editorRef.current && monacoRef.current && file) {
       const fileId = getFileId(file);
-      if (activeFileIdRef.current !== fileId) {
-        attachEditorToFile(file);
-      }
+      if (activeFileIdRef.current !== fileId) attachEditorToFile(file);
     }
   }, [file?.id, file?.extension, isRoom, yProvider, yFileContents]);
 
   useEffect(() => {
     const fileId = getFileId(file);
-    if (
-      !fileId ||
-      !isRoom ||
-      !yProvider ||
-      !yFileContents ||
-      !editorRef.current ||
-      !monacoRef.current
-    )
-      return;
+    if (!fileId || !isRoom || !yProvider || !yFileContents || !editorRef.current || !monacoRef.current) return;
 
     let cancelled = false;
     let timeoutId = null;
 
     const tryAttach = () => {
       if (cancelled) return;
-
       const yText = yFileContents.get(fileId);
       const hasBinding = bindingMapRef.current.has(fileId);
-
       if (hasBinding) return;
-
       if (yText) {
         try {
           attachEditorToFile(file);
@@ -195,7 +173,6 @@ const CodeEditor = ({
         }
         return;
       }
-
       timeoutId = setTimeout(tryAttach, 100);
     };
 
@@ -239,6 +216,14 @@ const CodeEditor = ({
       });
       bindingMapRef.current.clear();
 
+      yTextObserverMapRef.current.forEach((observer, fileId) => {
+        try {
+          const yText = yFileContents?.get(fileId);
+          if (yText && observer) yText.unobserve(observer);
+        } catch (e) {}
+      });
+      yTextObserverMapRef.current.clear();
+
       modelMapRef.current.forEach((model) => {
         try {
           model.dispose();
@@ -258,10 +243,7 @@ const CodeEditor = ({
       const expectedUri = `inmemory://model/${fileId}.${file.extension}`;
 
       if (currentUri !== expectedUri) {
-        console.debug(
-          "[editor] File rename detected, purging old model and binding",
-          { fileId },
-        );
+        console.debug("[editor] File rename detected, purging old model and binding", { fileId });
 
         const oldBinding = bindingMapRef.current.get(fileId);
         if (oldBinding) {
@@ -276,22 +258,16 @@ const CodeEditor = ({
         } catch (e) {}
         modelMapRef.current.delete(fileId);
 
-        if (editorRef.current && monacoRef.current) {
-          attachEditorToFile(file);
-        }
+        if (editorRef.current && monacoRef.current) attachEditorToFile(file);
       }
     }
-  }, [file?.name, file?.extension]); // Triggers instantly when name or extension updates
+  }, [file?.name, file?.extension]);
 
   const handleEditorChange = (value) => {
     if (ignoreChangeRef.current || !file || !onFileChange) return;
     const fileId = getFileId(file);
-    
     const isUsingMonacoBinding = isRoom && yProvider && yFileContents?.has(fileId);
-    if (isUsingMonacoBinding) {
-      return;
-    }
-    
+    if (isUsingMonacoBinding) return;
     onFileChange(fileId, value);
   };
 
