@@ -64,7 +64,7 @@ const Whiteboard = ({
   const drawImageFromData = (callback) => {
     const ctx = getCtx();
     const bounds = getBounds();
-    if (!ctx || !bounds || !initialData) {
+    if (!ctx || !bounds  || bounds.width === 0|| !initialData) {
       if (callback) callback();
       return;
     }

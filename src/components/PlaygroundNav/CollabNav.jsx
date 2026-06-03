@@ -53,6 +53,17 @@ const PlaygroundNav = ({
   const saveCode = async () => {
     try {
       if (user) {
+        if (onSaveWhiteboard) {
+          try {
+            await onSaveWhiteboard();
+          } catch (err) {
+            console.error("Whiteboard save failed", err);
+            toast.error(
+              "Whiteboard snapshot failed to save. Code will still be saved.",
+            );
+          }
+        }
+        
         const config = {
           headers: {
             Authorization: user?.accessToken,

@@ -308,7 +308,6 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
     if (ignoreChangeRef.current || !file || !onFileChange) return;
     const fileId = getFileId(file);
     const isUsingMonacoBinding = isRoom && yProvider && yFileContents?.has(fileId);
-    if (isUsingMonacoBinding) return;
     onFileChange(fileId, value);
   };
 

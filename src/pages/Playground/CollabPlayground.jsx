@@ -514,10 +514,9 @@ const CollabPlayground = () => {
       setFiles((prev) =>
         prev.map((f) => (f.id === fileId ? { ...f, content } : f)),
       );
-    } else {
-      scheduleSave(fileId, content);
-    }
-
+    } 
+      
+    scheduleSave(fileId, content);
     console.debug("[file] schedule preview rebuild after update", { fileId });
     schedulePreviewRebuild();
   };
