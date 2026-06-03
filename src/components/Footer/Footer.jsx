@@ -16,7 +16,7 @@ const Footer = () => {
           <a
             target="_blank"
             rel="noreferrer"
-            href="https://github.com/Nupoor10/codesynth-frontend"
+            href="https://github.com/Nupoor10/codesynth-frontend-v2"
             aria-label="Frontend GitHub"
           >
             <AiFillGithub />
@@ -24,7 +24,7 @@ const Footer = () => {
           <a
             target="_blank"
             rel="noreferrer"
-            href="https://github.com/Nupoor10/codesynth-backend"
+            href="https://github.com/Nupoor10/codesynth-backend-v2"
             aria-label="Backend GitHub"
           >
             <AiFillGithub />
