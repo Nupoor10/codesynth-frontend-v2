@@ -33,7 +33,7 @@ const Home = () => {
         />
 
         <div className="home__hero">
-          <span className="home__badge">AI-Powered Collaborative Coding</span>
+          <span className="home__badge">Real-time Collaborative Coding</span>
 
           <h2>
             Build, Collaborate, and Code

@@ -9,8 +9,7 @@ const Footer = () => {
         <div className="footer__about">
           <h2>CodeSynth</h2>
           <p>
-            Explore the future of coding with AI-powered collaboration,
-            real-time editing, and intelligent development tools.
+            Explore the future of coding with real-time collaboration.
           </p>
         </div>
         <div className="footer__links">
