@@ -3,14 +3,14 @@ import axios from "axios";
 import "./Whiteboard.css";
 
 const Whiteboard = ({
-  isRoom,
-  yDoc,
-  id,
-  initialData,
-  whiteboardSaveRef,
-  apiURL,
-  accessToken,
-}) => {
+                      isRoom,
+                      yDoc,
+                      id,
+                      initialData,
+                      whiteboardSaveRef,
+                      apiURL,
+                      accessToken,
+                    }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [color, setColor] = useState("black");
@@ -28,25 +28,37 @@ const Whiteboard = ({
   const setupCanvas = () => {
     const canvas = getCanvas();
     const bounds = getBounds();
-    if (!canvas || !bounds) return null;
+    if (!canvas || !bounds || bounds.width === 0) return null;
 
     const scale = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(bounds.width * scale);
-    canvas.height = Math.floor(bounds.height * scale);
-    canvas.style.width = `${bounds.width}px`;
-    canvas.style.height = `${bounds.height}px`;
+    const targetWidth = Math.floor(bounds.width * scale);
+    const targetHeight = Math.floor(bounds.height * scale);
 
     const ctx = canvas.getContext("2d");
-    ctx.setTransform(scale, 0, 0, scale, 0, 0);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+
+    if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      canvas.style.width = `${bounds.width}px`;
+      canvas.style.height = `${bounds.height}px`;
+
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, bounds.width, bounds.height);
+    }
+
     return ctx;
   };
 
   const clearCanvas = (ctx) => {
     const bounds = getBounds();
     if (!ctx || !bounds) return;
-    ctx.clearRect(0, 0, bounds.width, bounds.height);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, bounds.width, bounds.height);
   };
 
   const drawImageFromData = (callback) => {
@@ -61,7 +73,7 @@ const Whiteboard = ({
     img.onload = () => {
       ctx.drawImage(img, 0, 0, bounds.width, bounds.height);
       isImageLoadedRef.current = true;
-      if (callback) callback(); // Always redraw vector strokes AFTER image overlay settles
+      if (callback) callback();
     };
     img.src = initialData;
   };
@@ -82,8 +94,7 @@ const Whiteboard = ({
     if (!paths || paths.length === 0) return;
 
     paths.forEach((path) => {
-      if (!path || !Array.isArray(path.points) || path.points.length === 0)
-        return;
+      if (!path || !Array.isArray(path.points) || path.points.length === 0) return;
       ctx.strokeStyle = path.color || "black";
       ctx.lineWidth = path.width || 4;
       ctx.beginPath();
@@ -132,27 +143,57 @@ const Whiteboard = ({
   }, [isRoom, yDoc, id, initialData]);
 
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
     const handleResize = () => {
-      const ctx = setupCanvas();
-      if (!ctx) return;
-      const yArray = yLinesArrayRef.current;
+      const canvas = getCanvas();
+      const bounds = getBounds();
+      if (!canvas || !bounds) return;
+
+      const scale = window.devicePixelRatio || 1;
+      const targetWidth = Math.floor(bounds.width * scale);
+
+      if (canvas.width !== targetWidth) {
+        const ctx = setupCanvas();
+        if (!ctx) return;
+        const yArray = yLinesArrayRef.current;
       if (isRoom && yArray) {
-        redrawPaths(yArray.toArray());
-      } else {
-        redrawPaths([]);
+          redrawPaths(yArray.toArray());
+        } else {
+          redrawPaths([]);
+        }
       }
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [isRoom, initialData]);
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [isRoom,yDoc, initialData]);
 
   useEffect(() => {
     whiteboardSaveRef.current = async () => {
       const canvas = getCanvas();
       if (!canvas) throw new Error("Whiteboard canvas not available");
 
-      const dataURL = canvas.toDataURL("image/png");
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext("2d");
+
+      tempCtx.fillStyle = "#ffffff";
+      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+      tempCtx.drawImage(canvas, 0, 0);
+
+      const dataURL = tempCanvas.toDataURL("image/jpeg", 0.5);
+     
       if (!accessToken) throw new Error("Missing access token");
 
       const config = {
@@ -163,9 +204,9 @@ const Whiteboard = ({
       };
 
       await axios.put(
-        `${apiURL}/codes/${id}/whiteboard`,
-        { whiteboardData: dataURL },
-        config,
+          `${apiURL}/codes/${id}/whiteboard`,
+          { whiteboardData: dataURL },
+          config,
       );
       return dataURL;
     };
@@ -260,36 +301,36 @@ const Whiteboard = ({
   };
 
   return (
-    <div className="whiteboard__container" ref={containerRef}>
-      <div className="whiteboard__toolbar">
-        <div className="whiteboard__colors">
-          {["black", "red", "blue", "green"].map((swatch) => (
-            <button
-              key={swatch}
+      <div className="whiteboard__container" ref={containerRef}>
+        <div className="whiteboard__toolbar">
+          <div className="whiteboard__colors">
+            {["black", "red", "blue", "green"].map((swatch) => (
+                <button
+                    key={swatch}
+                    type="button"
+                    className={`whiteboard__color-option ${color === swatch ? "selected" : ""}`}
+                    style={{ backgroundColor: swatch }}
+                    onClick={() => setColor(swatch)}
+                />
+            ))}
+          </div>
+          <button
               type="button"
-              className={`whiteboard__color-option ${color === swatch ? "selected" : ""}`}
-              style={{ backgroundColor: swatch }}
-              onClick={() => setColor(swatch)}
-            />
-          ))}
+              className="whiteboard__button"
+              onClick={handleClearCanvas}
+          >
+            Clear Canvas
+          </button>
         </div>
-        <button
-          type="button"
-          className="whiteboard__button"
-          onClick={handleClearCanvas}
-        >
-          Clear Canvas
-        </button>
+        <canvas
+            ref={canvasRef}
+            className="whiteboard__canvas"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+        />
       </div>
-      <canvas
-        ref={canvasRef}
-        className="whiteboard__canvas"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-      />
-    </div>
   );
 };
 

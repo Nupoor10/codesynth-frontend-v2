@@ -71,67 +71,58 @@ const CollabPlayground = () => {
     const doc = new Y.Doc();
     ydocRef.current = doc;
     yProviderRef.current = new WebsocketProvider(
-      getYjsEndpoint(),
-      canonicalRoomId,
-      doc,
+        getYjsEndpoint(),
+        canonicalRoomId,
+        doc,
     );
+
+    const CURSOR_COLORS = [
+      "#39FF14", "#00FFFF", "#FF00FF", "#FFEA00",
+      "#FF6700", "#B026FF", "#00FA9A", "#FF1493"
+    ];
+
+    const clientId = yProviderRef.current.awareness.clientID;
+    const userColor = CURSOR_COLORS[clientId % CURSOR_COLORS.length];
+
+    yProviderRef.current.awareness.setLocalStateField("user", {
+      name: user?.name || "Guest",
+      color: userColor,
+    });
+
     yFileContentsRef.current = doc.getMap("fileContents");
     setYProvider(yProviderRef.current);
     setYFileContents(yFileContentsRef.current);
-    console.debug("[yjs] initialized yFileContents map", {
-      room: canonicalRoomId,
-      keys: Array.from(yFileContentsRef.current.keys()),
-    });
 
-    loadedFiles.forEach((file) => {
-      const fileId = file.id || file._id;
-      let yText = yFileContentsRef.current.get(fileId);
-
-      if (!yText) {
-        yText = new Y.Text();
-        if (file.content) {
-          yText.insert(0, file.content);
-        }
-        yFileContentsRef.current.set(fileId, yText);
-      }
-
-      console.debug("[yjs] attaching yText observer", { fileId });
-      attachYTextObserver(fileId, yText);
-    });
-
-    yFileContentsRef.current.observeDeep((events) => {
-      console.debug("[yjs-sync] Global map background modification heard");
-
-      events.forEach((event) => {
-        if (event.target instanceof Y.Text) {
-          for (const [fileId, yText] of yFileContentsRef.current.entries()) {
-            if (yText === event.target) {
-              const currentTextContent = yText.toString();
-
-              if (filesRef.current) {
-                filesRef.current = filesRef.current.map((f) =>
-                  f.id === fileId ? { ...f, content: currentTextContent } : f,
-                );
-                try {
-                  setFiles([...filesRef.current]);
-                } catch (e) {}
-              }
-              break;
-            }
-          }
+    yFileContentsRef.current.observe((event) => {
+      event.changes.keys.forEach((change, key) => {
+        if (change.action === 'add') {
+          const newYText = yFileContentsRef.current.get(key);
+          attachYTextObserver(key, newYText);
         }
       });
-
-      schedulePreviewRebuild();
     });
 
     yProviderRef.current.on("sync", (isSynced) => {
-      console.debug("[yjs] provider sync", {
-        room: canonicalRoomId,
-        isSynced,
-        time: Date.now(),
-      });
-      if (isSynced) rebuildPreview();
+      console.debug("[yjs] provider sync", { room: canonicalRoomId, isSynced });
+      if (isSynced) {
+        loadedFiles.forEach((file) => {
+          const fileId = file.id || file._id;
+          let yText = yFileContentsRef.current.get(fileId);
+
+          if (!yText) {
+            yText = new Y.Text();
+            if (file.content) {
+              yText.insert(0, file.content);
+            }
+            yFileContentsRef.current.set(fileId, yText);
+          }
+
+      console.debug("[yjs] attaching yText observer", { fileId });
+          attachYTextObserver(fileId, yText);
+        });
+
+        rebuildPreview();
+      }
     });
 
     socketRef.current = await initSocket();

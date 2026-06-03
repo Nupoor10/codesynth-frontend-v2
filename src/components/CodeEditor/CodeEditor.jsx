@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { MonacoBinding } from "y-monaco";
 import FileTab from "../FileTab/FileTab";
@@ -39,6 +39,7 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
   const yTextObserverMapRef = useRef(new Map());
   const ignoreChangeRef = useRef(false);
   const activeFileIdRef = useRef(null);
+  const [awarenessStyle, setAwarenessStyle] = useState("");
 
   const getFileId = (f) => f?.id || f?._id;
 
@@ -119,21 +120,6 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
 
         const binding = new MonacoBinding(yText, model, new Set([editorRef.current]), yProvider.awareness);
         bindingMapRef.current.set(fileId, binding);
-
-        if (!yTextObserverMapRef.current.has(fileId)) {
-          const observer = () => {
-            try {
-              const v = yText.toString();
-              if (model && model.getValue() !== v) {
-                ignoreChangeRef.current = true;
-                model.setValue(v);
-                ignoreChangeRef.current = false;
-              }
-            } catch (e) {}
-          };
-          yText.observe(observer);
-          yTextObserverMapRef.current.set(fileId, observer);
-        }
       } catch (e) {
         console.error("[editor] failed to create MonacoBinding on tab switch", e);
       }
@@ -152,6 +138,61 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
       if (activeFileIdRef.current !== fileId) attachEditorToFile(file);
     }
   }, [file?.id, file?.extension, isRoom, yProvider, yFileContents]);
+
+  useEffect(() => {
+    if (!yProvider || !yProvider.awareness) return;
+
+    const updateStyles = () => {
+      const states = yProvider.awareness.getStates();
+      let styleString = "";
+
+      states.forEach((state, clientId) => {
+        if (state.user && state.user.color) {
+          styleString += `
+            .yRemoteSelection-${clientId} {
+              background-color: ${state.user.color} !important;
+              opacity: 0.3;
+            }
+            .yRemoteSelectionHead-${clientId} {
+              position: absolute;
+              border-left: 2px solid ${state.user.color};
+              height: 100%;
+              box-sizing: border-box;
+              z-index: 10;
+            }
+            .yRemoteSelectionHead-${clientId}::after {
+              position: absolute;
+              content: "${state.user.name || "Guest"}";
+              top: -20px;
+              left: -2px;
+              background-color: ${state.user.color};
+              color: #000;
+              font-family: "Fira Code", Consolas, monospace;
+              font-size: 11px;
+              font-weight: 600;
+              line-height: normal;
+              white-space: nowrap;
+              padding: 2px 6px;
+              border-radius: 4px 4px 4px 0;
+              pointer-events: none;
+              user-select: none;
+              z-index: 11;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            }
+          `;
+        }
+      });
+
+      setAwarenessStyle(styleString);
+    };
+
+    yProvider.awareness.on("change", updateStyles);
+    updateStyles();
+
+    return () => {
+      yProvider.awareness.off("change", updateStyles);
+    };
+  }, [yProvider]);
 
   useEffect(() => {
     const fileId = getFileId(file);
@@ -282,16 +323,18 @@ const CodeEditor = ({ file, onFileChange, isRoom, yProvider, yFileContents }) =>
   }
 
   return (
-    <div className="code__editor__component">
-      <FileTab file={file} />
-      <Editor
-        language={getLanguageFromExtension(file.extension)}
-        theme="vs-dark"
-        onMount={handleEditorMount}
-        onChange={handleEditorChange}
-        options={editorOptions}
-      />
-    </div>
+      <div className="code__editor__component">
+        <style dangerouslySetInnerHTML={{ __html: awarenessStyle }} />
+
+        <FileTab file={file} />
+        <Editor
+            language={getLanguageFromExtension(file.extension)}
+            theme="vs-dark"
+            onMount={handleEditorMount}
+            onChange={handleEditorChange}
+            options={editorOptions}
+        />
+      </div>
   );
 };
 
